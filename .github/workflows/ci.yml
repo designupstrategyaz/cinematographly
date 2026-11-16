@@ -10,7 +10,7 @@ jobs:
     name: Spend gate on the macOS system Python
     # GitHub's Ubuntu runners no longer offer Python 3.9; macOS still ships it as /usr/bin/python3, which is the one
     # a Mac user without Homebrew runs the hooks with
-    runs-on: macos-14
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
