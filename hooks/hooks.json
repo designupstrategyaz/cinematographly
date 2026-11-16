@@ -1,0 +1,136 @@
+{
+  "_about": "Cinematographly's runtime hooks. PreToolUse: every Higgsfield, Kling, Scenario and DaVinci Resolve tool call, and every tool of a claude.ai connector (matched by its uuid), runs scripts/gate.py: reads pass silently; paid calls need an open job, the approvals before them in the person's own words, a linted prompt and a budget; publishing needs the export approval; Resolve scripts that start a render or call Resolve's AI voice or auto-captions are denied. The gate fails closed: if it cannot run, times out or answers nothing, the call is refused (onFailure: block, and exit 2 for older Claude Code). A fifth entry runs scripts/shell_gate.py on shell commands (it refuses text burnt into a video outside 09-qa/ and fails open). PostToolUse and PostToolUseFailure record each generate request by hash so an identical retry within 30 minutes asks first. SessionStart injects the open job's state. Which connector uuid is your Higgsfield account is a setting: `gate.py connectors`.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__(?:[A-Za-z0-9_-]+__)?[Hh]iggsfield(?:[-_][A-Za-z0-9]+)*__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "out=$(python3 \"${CLAUDE_PLUGIN_ROOT}/skills/cinematographly/scripts/gate.py\" hook) && [ -n \"$out\" ] && printf '%s\\n' \"$out\" || { echo \"cinematographly gate could not run or gave no answer, so this call is refused: a spend gate fails closed. Repair or reinstall the plugin (gate.py --selftest), then retry.\" >&2; exit 2; }",
+            "timeout": 20,
+            "onFailure": "block"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "out=$(python3 \"${CLAUDE_PLUGIN_ROOT}/skills/cinematographly/scripts/gate.py\" hook) && [ -n \"$out\" ] && printf '%s\\n' \"$out\" || { echo \"cinematographly gate could not run or gave no answer, so this call is refused: a spend gate fails closed. Repair or reinstall the plugin (gate.py --selftest), then retry.\" >&2; exit 2; }",
+            "timeout": 20,
+            "onFailure": "block"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__(?:[A-Za-z0-9_-]+__)?(?:[Kk]ling(?:[-_][A-Za-z0-9]+)*|[A-Za-z0-9_-]*?[Ss][Cc][Ee][Nn][Aa][Rr][Ii][Oo][A-Za-z0-9_-]*?)__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "out=$(python3 \"${CLAUDE_PLUGIN_ROOT}/skills/cinematographly/scripts/gate.py\" hook) && [ -n \"$out\" ] && printf '%s\\n' \"$out\" || { echo \"cinematographly gate could not run or gave no answer, so this call is refused: a spend gate fails closed. Repair or reinstall the plugin (gate.py --selftest), then retry.\" >&2; exit 2; }",
+            "timeout": 20,
+            "onFailure": "block"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__(?:[A-Za-z0-9_-]+__)?[Dd]a_?[Vv]inci[_-]?[Rr]esolve(?:[_-]?[Ss]tudio)?__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "out=$(python3 \"${CLAUDE_PLUGIN_ROOT}/skills/cinematographly/scripts/gate.py\" hook) && [ -n \"$out\" ] && printf '%s\\n' \"$out\" || { echo \"cinematographly gate could not run or gave no answer, so this call is refused: a spend gate fails closed. Repair or reinstall the plugin (gate.py --selftest), then retry.\" >&2; exit 2; }",
+            "timeout": 20,
+            "onFailure": "block"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|mcp__(?:[A-Za-z0-9_-]+__)?device_bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/cinematographly/scripts/shell_gate.py\" hook",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "mcp__(?:[A-Za-z0-9_-]+__)?[Hh]iggsfield(?:[-_][A-Za-z0-9]+)*__generate_.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/cinematographly/scripts/gate.py\" posthook",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}__generate_.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/cinematographly/scripts/gate.py\" posthook",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__(?:[A-Za-z0-9_-]+__)?[Kk]ling(?:[-_][A-Za-z0-9]+)*__(?:text_to_image|image_to_image|text_to_video|image_to_video|omni_ref_video|motion_control)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/cinematographly/scripts/gate.py\" posthook",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "mcp__(?:[A-Za-z0-9_-]+__)?[Hh]iggsfield(?:[-_][A-Za-z0-9]+)*__generate_.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/cinematographly/scripts/gate.py\" posthook --failed",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}__generate_.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/cinematographly/scripts/gate.py\" posthook --failed",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__(?:[A-Za-z0-9_-]+__)?[Kk]ling(?:[-_][A-Za-z0-9]+)*__(?:text_to_image|image_to_image|text_to_video|image_to_video|omni_ref_video|motion_control)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/cinematographly/scripts/gate.py\" posthook --failed",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/skills/cinematographly/scripts/gate.py\" session",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

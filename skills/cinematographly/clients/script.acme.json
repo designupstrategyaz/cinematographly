@@ -1,0 +1,13 @@
+{
+  "_comment": "SAMPLE script numbers for the invented client `acme`, so scripts/beat_plan.py and scripts/script_score.py have something to run on. ⛔ Invented, not measured on any channel. Do not copy them: copy clients/script._TEMPLATE.json into your own client folder and measure yours.",
+  "client": "acme",
+  "runtime_target_s": 30,
+  "hook_seconds_min": 3,
+  "cta_seconds": 4,
+  "beat_seconds": 7.5,
+  "max_words_per_line": 14,
+  "speakers": 1,
+  "lang": "en",
+  "last_verified": "",
+  "_last_verified": "Empty on purpose: nobody measured these numbers."
+}

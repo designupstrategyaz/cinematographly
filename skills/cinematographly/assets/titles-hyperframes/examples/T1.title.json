@@ -1,0 +1,19 @@
+{
+ "id": "T1",
+ "kind": "hero",
+ "duration_s": 3.0,
+ "at_s": 0.5,
+ "anchor": {
+  "type": "settle",
+  "at_s": 0.5
+ },
+ "said_by_vo": true,
+ "content": {
+  "lines": [
+   "Sleep through",
+   "the night"
+  ],
+  "emphasis": "night",
+  "mark": "bar"
+ }
+}

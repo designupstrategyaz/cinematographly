@@ -1,0 +1,179 @@
+{
+  "_about": "Outcome data for the CREATIVE half of this skill — what large studies say actually moves a result, and what the industry publishes that does not survive its trail. Researched 2026-09-18. Tiers per references/research-quality.md §2. ⛔ This file holds FINDINGS WITH PROVENANCE, never a bare number: a benchmark with no method is not a benchmark, it is a rumour with a decimal point.",
+  "_the_headline": "⛔ THE ONLY TIER-1 BENCHMARK IS THE CLIENT'S OWN DATA. Everything below is context for a conversation, not a target to hit. 'Is 0.8% CTR good?' is answerable only against this client, this offer, this audience, over time — which is what ledger.py publish + pull_metrics.py exist to accumulate. Judge a video against the last ten of ITS OWN, and treat every external figure as a sanity check on the order of magnitude, nothing more.",
+  "_how_to_use": "Cite a finding by its key. If a finding is used to justify a creative decision, the decision records the key and the tier beside it (pm-workflow.md, the verification readout). A finding that reaches a client deck carries its sample size and its commissioning party.",
+  "findings": {
+    "brand_placement_sharing": {
+      "claim": "Prominent brand placement (early vs late, long vs short, persistent vs pulsing) HURTS sharing.",
+      "outcome_measured": "sharing of YouTube video ads",
+      "source": "Tellis, MacInnis, Tirunillai & Zhang, 'What Drives Virality (Sharing) of Online Digital Content?', Journal of Marketing 2019",
+      "tier": "PRIMARY",
+      "independent": true,
+      "commissioned_by": null,
+      "date": "2019",
+      "fetched": "2026-09-07",
+      "also": "What drove sharing was positive arousal — amusement, excitement, inspiration, warmth. Only ~7% of YouTube video ads evoked strong positive emotion at all.",
+      "scope_warning": "YouTube ads, sharing. NOT retention, NOT TikTok, NOT sales.",
+      "owned_by": "references/hook-craft.md §5"
+    },
+    "abcd_framework": {
+      "claim": "Attention / Branding / Connection / Direction. 'Brand early, often and richly'; humanise by featuring people; keep visuals bright and high-contrast; support the story with audio and text overlays; reinforce the CTA with voice-over.",
+      "numbers": "as much as +30% lift in short-term sales likelihood and +17% lift in long-term brand contribution",
+      "outcome_measured": "sales likelihood (short term) and brand contribution (long term)",
+      "source": "Google/Kantar, 'The Short & the Long of ABCDs Effectiveness', Global, Apr 2021 — read via Google Ads Help, 2026-09-18",
+      "tier": "SECONDARY",
+      "independent": false,
+      "commissioned_by": "Google (platform) with Kantar",
+      "date": "2021-04",
+      "fetched": "2026-09-18",
+      "gaps": "No sample size, ad volume, market breakdown or confidence interval on the published page. The underlying Kantar study was NOT read. Five years old at time of reading — see research-quality.md on decay.",
+      "conflict": "Directly opposes brand_placement_sharing on TIMING — see _the_brand_timing_question."
+    },
+    "attention_distinctive_assets": {
+      "claim": "A video ad can be recalled after ~1.5 seconds of attention, but ONLY if distinctive brand assets are present. Well-branded ads returned 3.5x higher ROI when adjusted for attention; at low view time, well-branded assets were 2.5x more effective.",
+      "outcome_measured": "ad recall / memory encoding and an attention-adjusted ROI model",
+      "source": "Nelson-Field (Amplified Intelligence) x VCCP Media, 'Hacking the Attention Economy', 2025",
+      "tier": "SECONDARY",
+      "independent": false,
+      "commissioned_by": "VCCP Media (an agency that sells branded creative)",
+      "sample": "72 digital video ads, 20,000+ views, 8 named brands",
+      "date": "2025",
+      "fetched": "2026-09-18",
+      "gaps": "Measurement technology NOT disclosed (no statement of eye-tracking vs facial coding vs panel). No stated limitations. The '66p in every £1 wasted / £66bn globally' figure is a marketing number derived from their own model — do not repeat it to a client.",
+      "conflict": "Points the same way as abcd_framework on brand presence — see _the_brand_timing_question."
+    },
+    "tiktok_creative_center_as_a_source": {
+      "claim": "A usable corpus of real ads with outcome SIGNAL: per ad you get likes, shares, industry, video duration, primary text and CTA, filterable by industry, region, objective, format and time range.",
+      "outcome_measured": "CTR, but exposed only as BUCKETS, never a raw rate",
+      "source": "TikTok Creative Center — capabilities described by a third-party guide, adlibrary.com, read 2026-09-18",
+      "tier": "SECONDARY",
+      "date": "2026",
+      "fetched": "2026-09-18",
+      "limits": [
+        "Selection bias is the whole problem: it surfaces ads with STRONG performance signals, so it is a library of winners with no control group.",
+        "CTR is bucketed, not raw.",
+        "~6 month data window.",
+        "Regional coverage thin outside US/UK/Western Europe.",
+        "No spend, no targeting."
+      ],
+      "usable_design": "The bias is survivable ONE way: compare TOP bucket against LOWER bucket WITHIN one industry, objective and format. That gives a control group inside the library. Pre-register the predictions before coding or it is pattern-matching. See _proposed_study."
+    },
+    "emotional_vs_rational_by_horizon": {
+      "claim": "Rational, persuasive, targeted messaging drives fast sales spikes that DECAY quickly. Emotionally-led campaigns are disproportionately associated with profitable, durable growth over months and years. Roughly 60% of budget to long-term brand building, 40% to short-term activation — shifting toward brand for premium, B2B and new entrants, and toward activation only for low-margin, high-frequency, price-led businesses with a genuine time-limited window.",
+      "outcome_measured": "commercial ROI, short-term vs long-term",
+      "source": "Binet & Field, 'The Long and the Short of It', IPA Effectiveness Databank",
+      "tier": "SECONDARY-LARGE",
+      "sample": "1,000+ proven-ROI case studies, entered for awards, evidenced by econometrics / controlled testing / robust tracking",
+      "independent": true,
+      "fetched": "2026-09-18",
+      "stated_limitations": [
+        "Non-random, survivorship-biased: well-measured, well-resourced, disproportionately UK campaigns.",
+        "The 60:40 'became a meme, and memes lose their conditions' — it is a starting point conditioned on category, not a rule.",
+        "Criticised for conflating channel with objective rather than classifying by effect."
+      ],
+      "applicability": "HIGH on the direction, LOW on the numbers. Largely TV-era campaign data, not short-form feed video. Use it to choose the REGISTER for an objective; do not quote 60:40 at a client as though it were measured on TikTok.",
+      "why_it_matters_here": "It is the spine under script_score.py --objective. Emotional register and brand-late suit durable/brand outcomes; rational and direct suit activation, and the spike decays. Tellis independently found positive AROUSAL — amusement, excitement, inspiration, warmth — was what drove sharing, which is the same direction from a different dataset."
+    },
+    "abandonment_curve": {
+      "claim": "About 1/3 of viewers abandon before the QUARTER mark of an ad and about 2/3 before the HALF-way mark. Completion differences by length are smaller than folklore suggests: 15s vs 20s was 3%, 20s vs 30s was 4%. Mid-rolls completed better than pre- or post-rolls.",
+      "outcome_measured": "ad completion and abandonment",
+      "source": "Krishnan & Sitaraman (UMass / Akamai), 'Understanding the Effectiveness of Video Ads: A Measurement Study'",
+      "tier": "PRIMARY",
+      "sample": "65M unique users, 367M video views, 257M ad views, 33 providers, ~3000 publishers, 15 days, April 2013; quasi-experimental with ~160,000 matched viewer pairs",
+      "independent": true,
+      "fetched": "2026-09-18",
+      "applicability": "⛔ LOW. 2013 DESKTOP PRE-ROLL on video sites — interruptive, skippable, in a player. Our medium is a 2026 vertical feed where the ad IS the content and the competition is a thumb. Thirteen years old. The SHAPE is the transferable part (most of the loss is early, and it is front-loaded); the specific rates are not, and the mid-roll finding has no analogue here.",
+      "the_useful_correction": "A 3-4% completion difference between 15s and 30s is far smaller than 'shorter is always better' implies. Length is a weaker lever than the first seconds are. Consistent with this skill's own position that the hook window is where the money is."
+    }
+  },
+  "blacklist": {
+    "_why": "⛔ Recorded rather than omitted, so nobody re-imports them next month. Same practice as cinematography-craft.md §9.0.",
+    "ctr_by_industry_tables": {
+      "claim_seen": "CTR by industry tables — e.g. Finance ~1.03%, EdTech ~0.89%, Food & Bev ~0.84%, Fitness ~0.6%, Cosmetics ~0.32%, Tech ~0.26%, Fashion ~0.25%; formats TopView 12-16%, Brand Takeover 7-10%, In-Feed 1.5-3%.",
+      "source": "adlibrary.com, read 2026-09-18",
+      "tier": "UNVERIFIED",
+      "why_rejected": [
+        "No methodology of any kind: no sample, no period, no data source, no geography, no confidence interval.",
+        "⛔ INTERNALLY INCONSISTENT on its own page: In-Feed CTR is given as 1.5-3% while EVERY industry figure is at or below 1.03%. In-feed is the dominant format, so both cannot describe the same population.",
+        "This shape of content is the norm rather than the exception — most 'benchmark' pages are vendor SEO with numbers of unknown origin."
+      ],
+      "status": "Do not cite, do not import, do not restate to a client. If a client cites one of these, this entry is the reply."
+    }
+  },
+  "_the_brand_timing_question": {
+    "status": "RESOLVED AS A SCOPE, NOT A CONTRADICTION — 2026-09-18",
+    "the_apparent_clash": "hook-craft.md §5 says brand LATE. Google/Kantar says brand EARLY, often and richly. Nelson-Field says an ad without distinctive assets wastes the attention it buys.",
+    "why_it_is_not_a_contradiction": [
+      "They measure DIFFERENT OUTCOMES. Sharing (Tellis) is not recall (Nelson-Field) is not sales likelihood (Google/Kantar). Nothing here is evidence against anything else here.",
+      "⚡ And the two are about different THINGS: brand PRESENCE is not brand ANNOUNCEMENT. '<Brand> presents' in the first beat is an announcement — that is what Tellis measured hurting sharing. A product in frame, the house colour, a recurring character, a sonic mark: that is presence, and it is what the attribution literature is asking for. A hook can carry every distinctive asset and never announce anything.",
+      "⛔ WEIGH THEM HONESTLY RATHER THAN COUNTING THEM. Tellis is peer-reviewed and independent. The other two are commissioned by parties who sell branding and disclose less method. Two-against-one is not evidence; it is two interested parties agreeing. They SCOPE the finding, they do not overturn it."
+    ],
+    "house_position": "Brand is not ANNOUNCED in the first beat. Distinctive assets MAY be present in it and usually should be. Which way the dial sits past that is chosen by the video's OBJECTIVE, which the client profile already declares: optimise for reach and sharing -> later and lighter; optimise for attribution, recall or conversion -> present from frame one, still not announced. Either way the decision records which finding it leaned on."
+  },
+  "_proposed_study": [
+    {
+      "name": "lab-00002 — does our doctrine discriminate between outcome buckets?",
+      "status": "SPECIFIED, NOT RUN",
+      "design": "~40 TikTok Creative Center ads in ONE industry, ONE objective, ONE format, stratified top bucket vs lower bucket. Code each on dimensions this skill already claims matter: where the brand is first PRESENT and first ANNOUNCED (separately), whether the hook carries a concrete anchor and a withheld term, cuts in the first 6s, shot-length distribution, whether a turn has a reaction, whether a person's face is in frame 1.",
+      "pre_registration": "⛔ Predictions written and committed BEFORE coding, or the result is pattern-matching.",
+      "honest_limits": [
+        "Correlational and heavily confounded by product, offer and audience. It can find associations, never causes.",
+        "CTR is not the outcome most clients here care about — much of the work is brand video, not click.",
+        "The coding is manual: ~40 ads x ~10 dimensions is roughly a day, and it is the real cost."
+      ]
+    },
+    {
+      "name": "lab-00003 — does resolution or dependency count decide whether a busy frame holds?",
+      "question": "On one over-populated frame spec, which intervention recovers it: raising resolution at a constant field of view, or halving the field of view at constant resolution?",
+      "design": "One base prompt with a stated dependency count (N distinct objects that must stay themselves). Four cells: (1080p, wide) (4K, wide) (1080p, tight) (4K, tight). n>=6 generations per cell, same seedless conditions. Score each generation on a pre-registered checklist: object identity held / geometry stable across frames / legible text intact / hero distinguishable from background objects of its class.",
+      "what_would_change": "If 4K-wide scores like 1080p-tight, the two rules are interchangeable and the cheaper one wins. If 4K-wide fails where 1080p-tight passes, dependency count dominates and production-design.md §5c is the primary rule with the 4K finding scoped to detail retention. If both fail, the failure is the spec, not the frame.",
+      "cost_note": "Price with rate_card.py before running. 24 generations minimum; run under a calibration job (_lab) so gate.py does not bill it to a client.",
+      "status": "proposed, unrun as of 2026-09-17"
+    }
+  ],
+  "_tier_is_not_applicability": "⛔ A SOURCE CAN BE PRIMARY AND STILL NOT APPLY. research-quality.md §2 tiers how well a claim is EVIDENCED; it does not tier whether the claim is about YOUR medium. The Akamai study below is the cleanest method in this file — 65M users, matched pairs — and it measures 2013 DESKTOP PRE-ROLL, which is not a vertical feed in 2026. Every finding here carries both: a tier AND an applicability note. When they disagree, applicability wins.",
+  "_synthesis": {
+    "_what_all_of_it_adds_up_to": "Four independent sources, four different outcomes, and they do NOT conflict once you stop reading them as one question:",
+    "by_objective": {
+      "sharing / reach": {
+        "register": "emotional, positive arousal — amusement, excitement, inspiration, warmth",
+        "brand": "late and light; announcement in the first beat has a measured cost",
+        "evidence": [
+          "brand_placement_sharing (PRIMARY)",
+          "emotional_vs_rational_by_horizon"
+        ],
+        "note": "Tellis: only ~7% of YouTube ads evoked strong positive emotion at all. The bar is low and almost nobody clears it."
+      },
+      "attribution / recall": {
+        "register": "whatever the brief wants, but the distinctive assets must be IN it",
+        "brand": "present from frame one — presence, not announcement",
+        "evidence": [
+          "attention_distinctive_assets",
+          "abcd_framework"
+        ],
+        "note": "This is the objective where an unbranded beautiful film is wasted spend."
+      },
+      "conversion / activation": {
+        "register": "rational, direct, specific — and expect the effect to decay",
+        "brand": "present and named; a CTA, reinforced by voice-over (ABCD's D)",
+        "evidence": [
+          "abcd_framework",
+          "emotional_vs_rational_by_horizon"
+        ],
+        "note": "⛔ Binet & Field's warning applies here: an activation-only diet buys spikes that decay and does not build the thing that makes the next spike cheaper."
+      }
+    },
+    "how_to_use_it": "The client profile declares the objective; the objective picks the row; the row picks the register and the brand treatment. `script_score.py --objective sharing|attribution|conversion` applies the brand half of this mechanically. The register half stays a human call — no tool here can score 'emotionally-led'."
+  },
+  "_the_resolution_vs_framing_question": {
+    "status": "OPEN — logged 2026-09-17, NOT resolved at the desk",
+    "the_apparent_clash": "The Seedance 2.0 corpus [SECONDARY, 2026-09-16] holds that native 4K is what lets a busy frame hold together — buy resolution. A practitioner course [SECONDARY, 2026-09-17] holds that a failing frame is corrected by REFRAMING TIGHTER, not by adding instructions. One says spend on pixels, the other says remove the problem.",
+    "why_it_is_not_obviously_reconcilable": "Both are observations from working productions with stated outcomes, neither is measured against the other, and they prescribe opposite first moves on the same symptom (a busy frame that keeps coming back wrong). A skill that quietly holds both will apply whichever one the author remembered.",
+    "the_provisional_reading_do_not_treat_as_settled": "Resolution buys DETAIL RETENTION in a frame that is correctly specified and genuinely busy. Tight framing buys you OUT of a frame that is over-specified and failing. They may address different failures. Diagnostic: if the frame comes back coherent but soft, that is a resolution problem; if it comes back incoherent — objects mutating into each other, geometry disagreeing between frames — that is a dependency-count problem and pixels will not fix it.",
+    "what_would_settle_it": "lab-00003 below.",
+    "cross_refs": [
+      "production-design.md §5c",
+      "prompting-craft.md (resolution vs busy-ness, listed unrun)"
+    ]
+  }
+}

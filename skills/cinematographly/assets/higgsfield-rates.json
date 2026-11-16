@@ -1,0 +1,1389 @@
+{
+  "_about": "Published per-model credit rates, read from the Higgsfield pricing page's plan-comparison table. THIS IS NOT AVAILABLE THROUGH THE API — models_explore returns capabilities and no price — so it is transcribed here with a date, and it decays. Rates are credits per the stated unit duration and appear to be plan-independent; the $/credit is what varies by plan.",
+  "_source": "https://higgsfield.ai/pricing — plan comparison table",
+  "_checked": "2026-08-29",
+  "_authority": "UI PREFLIGHT WINS. Three sources disagree and they are not equally good: (1) the Generate button in the app is what you will actually be charged, on YOUR plan, for THAT exact configuration — this is authoritative; (2) your transaction ledger is what you WERE charged — authoritative for history and for models absent from the card; (3) the published pricing page is list pricing and was measured wrong twice (see _card_vs_ui) — treat it as indicative only.",
+  "_gap": "Models absent from the published pricing card are known only from transaction actuals. Treat any model missing from this card as measured-only.",
+  "plans_seen_on_page": {
+    "_note": "Annual pricing as displayed 2026-08-29. The account this skill runs on reports plan 'ultra' with a 3,000 credit/month grant, which does NOT match the page's Ultra (6,000-9,000/mo) — a legacy or monthly tier. Do not derive $/credit for this account from the page; ask for the actual monthly price.",
+    "ultra_annual_usd_per_month": 194,
+    "ultra_credits_per_month_page": "6000-9000",
+    "team_annual_usd_per_seat": 65,
+    "team_credits_per_seat": 1000,
+    "scale_annual_usd_per_seat": 150,
+    "scale_credits_per_seat": 2500
+  },
+  "free_and_unlimited": {
+    "_why_it_matters": "This is not a discount, it is a different cost model, and it can decide which model a batch uses. Check it per model before pricing a month.",
+    "kling3_0_free_gens_at_720p": "94 remaining on 2026-08-29 — 'Change settings for free gens' switches the config to the eligible one (720p) and reveals a 'Use free gens' toggle",
+    "unlimited_mode_toggle": "present on Kling 3.0 and Seedance 2.5; Nano Banana Pro has an Unlimited toggle on the image page. Plan-dependent and time-limited (the pricing page advertises 7-day unlimited windows) — verify before relying on it.",
+    "mcp_caveat": "PRIMARY, from the pricing page: 'Unlimited models and Free Generations on plans are accessible only via higgsfield.ai and are NOT accessible on MCP/CLI, Canvas or Supercomputer.' So a scripted MCP pipeline pays cash for what the browser gets free.",
+    "kling3_0_free_gens_at_720p_2026_10_21": "65 remaining on 2026-10-21 [measured · UI screenshot, owner]. With 'Use free gens' on, a Kling 3.0 720p 5 s 9:16 generation shows Free (0 cr), and stays free with a start frame attached [owner confirmed]. Website only — see mcp_caveat; a free generation made in the browser never passes gate.py."
+  },
+  "model_capability_notes": {
+    "_checked": "2026-08-29, in the generation UI",
+    "minimax_h3": {
+      "resolution": "2K only",
+      "duration_s": "4-15",
+      "credits_per_5s": 10,
+      "cr_per_s": 2.0,
+      "batch_size": "1-4 (API)",
+      "references": "up to 9 images and elements, 3 videos, 3 audio files — per the References panel",
+      "prompt_grammar": "inputs are ADDRESSABLE: 'Refer to inputs as Image 1, Video 1, or Audio 1. Add elements using @'",
+      "_why_it_matters": "Cheapest per second of any candidate AND the only one that consumes the whole _reference/ folder shape. Its audio slots make it a possible Path A (voice-first lipsync) model at 2K for 2.0 cr/s vs the retired model's 2.6 at 1080p — untested for articulation, and the first thing to bake off."
+    }
+  },
+  "_approved_roster_2026_08_29": {
+    "approved": [
+      "kling3_0",
+      "minimax_h3",
+      "seedance_2_5",
+      "gemini_omni_flash_1_1",
+      "wan3_0",
+      "kling4_0",
+      "hf_mult_motion_control",
+      "hf_mult_motion_control_flash",
+      "hf_mult_replace_object",
+      "hf_mult_replace_object_flash"
+    ],
+    "off_roster": [],
+    "rule": "Client lock (2026-08-29): only the approved video models may be proposed or used, and there is no cheaper fallback tier. Prices for off-roster models are kept so historical quotes stay auditable — they are history, not an option.",
+    "amendments": [
+      {
+        "date": "2026-09-19",
+        "by": "the owner",
+        "quote": "Also Google Omni 1.1 is not allowed. Should be.",
+        "added": "gemini_omni_flash_1_1",
+        "context": "The client approved a one-time off-roster test on a client job; the only bypass was CINE_GATE=off for a whole session, and the production agent's roster edit was (correctly) blocked as self-modification. The owner decided in the skill-development session instead.",
+        "not_done": "⛔ Added by house decision WITHOUT the promotion test in ai-generation.md. Nothing about its quality or first-frame fidelity has been measured here; the first takes are the measurement.",
+        "priced": "lab record lab-00004 (not shipped) — six get_cost probes, 0 credits"
+      },
+      {
+        "date": "2026-10-23",
+        "by": "the owner",
+        "quote": "We can use Wan 3 too.",
+        "decision": "\"Full roster, traps enforced\" (asked: whole roster, evaluation only, or trial only)",
+        "added": "wan3_0",
+        "context": "Reverses the 2026-08-29 exclusion (\"wan2_7 and wan3_0 are out\") and this session's earlier \"Wan 3 stays off the roster\"; the owner's call, made with the facts in the study report.",
+        "not_done": "⛔ Added by house decision WITHOUT the promotion test in ai-generation.md; its first takes are the measurement.",
+        "priced": "lab record lab-00010 (not shipped) — get_cost probes, 0 credits"
+      },
+      {
+        "date": "2026-10-23",
+        "by": "the owner",
+        "quote": "For Kling 3.0 - Kling 4.0 is now launched",
+        "decision": "\"Add beside Kling 3.0\" (asked: add, replace, or bake-off first)",
+        "added": "kling4_0",
+        "context": "kling3_0 stays until a side-by-side on our shots says otherwise.",
+        "not_done": "⛔ Added by house decision WITHOUT the promotion test; nothing about quality, first-frame fidelity or audio is measured here.",
+        "priced": "lab record lab-00010 (not shipped) — get_cost probes, 0 credits"
+      },
+      {
+        "date": "2026-11-03",
+        "by": "the owner",
+        "quote": "Include Genjutsu",
+        "then": "Genjutsu has 2 versions, full and lite. Lite has 10 free gens, full just 1",
+        "added": [
+          "hf_mult_motion_control",
+          "hf_mult_motion_control_flash",
+          "hf_mult_replace_object",
+          "hf_mult_replace_object_flash"
+        ],
+        "lane": "NOT clip models. Genjutsu takes no start frame, no prompt contract and no duration: it re-renders a source video. It has its own spec kind (`<SHOT>.genjutsu.prompt.md`, `kind: genjutsu`), its own approval (`genjutsu:<SHOT>`) and its own block below (`genjutsu`). It has no rate_table row on purpose: a rate row would let a clip prompt cast it.",
+        "context": "Asked in a finance client's job (B1, a set-down copied from a real clip). A v2.45.1 build that added Genjutsu was not reachable when 2.46.0 was built, so 2.46.1 rebuilds the change on top of 2.46.0.",
+        "not_done": "⛔ Added by house decision WITHOUT the promotion test in ai-generation.md; its first takes are the measurement. Kling 4.0's B1 take already copied the real clip's set-down cleanly, at about a sixth of the cost.",
+        "priced": "not probed in this build (0 credits spent). Probe each exact call with get_cost inside the job before quoting."
+      }
+    ]
+  },
+  "superseded_history": {
+    "⛔_do_not_read_for_a_price": "Every figure below is SUPERSEDED by rate_table. Kept because the disagreements are the evidence for the rule: the published card, a third-party page and two UI passes gave four different answers for Kling 3.0 @1080p. Provenance, not pricing.",
+    "_note_2026-09-01_readings": "The 2026-09-01 pass is preserved here as the raw readings; its values are live in rate_table.",
+    "video_credits_per_5s": {
+      "seedance_2_0_720p": 22,
+      "seedance_2_0_1080p": 45,
+      "seedance_2_0_4k": 110,
+      "seedance_2_0_fast_720p": 17,
+      "seedance_1_5_480p": 1,
+      "seedance_1_5_720p": 3,
+      "seedance_1_5_1080p": 7,
+      "seedance_pro_480p": 4,
+      "seedance_pro_720p": 8,
+      "seedance_pro_1080p": 18,
+      "seedance_pro_fast_720p": 4,
+      "seedance_pro_fast_1080p": 9,
+      "kling3_0_720p": 6,
+      "kling3_0_1080p": 7,
+      "kling3_0_4k": 30,
+      "kling2_6_with_sound": 10,
+      "kling2_6_without_sound": 5,
+      "kling2_5_turbo_720p": 4,
+      "kling2_5_turbo_1080p": 6,
+      "kling_omni3_imageref_720p": 5,
+      "kling_omni3_imageref_1080p": 7,
+      "grok_video": 7,
+      "grok_video_edit": 10
+    },
+    "video_credits_other_units": {
+      "veo_3_1_fast_720p_per_4s": 11,
+      "veo_3_1_720p_per_4s": 29,
+      "veo_3_fast_720p_per_8s": 22,
+      "veo_3_720p_per_8s": 58,
+      "sora2_720p_per_4s": 10,
+      "sora2_pro_1080p_per_4s": 50,
+      "sora2_max_1080p_per_4s": 34,
+      "hailuo_2_3_768p_per_6s": 6,
+      "hailuo_2_3_1080p_per_6s": 10,
+      "hailuo_2_3_fast_1080p_per_6s": 7
+    },
+    "lipsync_credits": {
+      "_note": "Directly relevant to the two-path lipsync routing in references/ai-generation.md.",
+      "higgsfield_speak_2_0_720p_per_5s": 14,
+      "kling_speak_720p_per_2s": 2,
+      "kling_speak_1080p_per_2s": 4,
+      "kling_lipsync_720p_per_5s": 2,
+      "infinite_talk_480p_per_5s": 18,
+      "infinite_talk_720p_per_2s": 12,
+      "sync_lipsync_3_4k_30fps_per_2s": 18,
+      "veo3_fast_audio_720p_per_8s": 22,
+      "veo3_audio_720p_per_8s": 58
+    },
+    "image_credits_per_image": {
+      "nano_banana_pro": 2,
+      "nano_banana_pro_4k": 4,
+      "nano_banana_2": 2,
+      "nano_banana": 1,
+      "higgsfield_soul_2_0": 0.12,
+      "higgsfield_soul": 0.25,
+      "soul_inpaint": 0.25,
+      "product_placement": 0.25,
+      "reve": 0.25,
+      "seedream": 1,
+      "gpt_image": 1,
+      "flux_kontext": 1.5,
+      "multi_reference": 1.5,
+      "popcorn": 1.5,
+      "face_swap": 2,
+      "character_swap": 2,
+      "flux_2_pro": 1,
+      "flux_2_flex": 3,
+      "flux_2_max": 4
+    },
+    "measured_in_ui_2026_08_29": {
+      "_method": "Read off the Generate button on the account this skill runs on (plan: ultra, 3,000 credits/month). Nothing was generated. Prices are the DISCOUNTED figure the button shows for this plan; where a list price was struck through it is noted.",
+      "_rules_verified": {
+        "aspect_ratio": "PRICE-NEUTRAL — Seedance 2.5 at 1080p cost 45 at both 16:9 and 9:16. Delivering vertical costs nothing extra.",
+        "duration": "EXACTLY LINEAR — Seedance 2.5 1080p: 45 at 5s and 153 at 17s = 9.00 cr/s at both. Price per second is the stable unit; quote in cr/s, not per clip.",
+        "resolution": "THE LEVER — tiered per model, and the tiers are not proportional (see below).",
+        "bitrate": "UNTESTED — a Bitrate (Standard/High) control exists on the Seedance models and the API exposes bitrate_mode, but the control was not reachable in the panel state available. Readings below are at the default, High. Test before assuming it is free."
+      },
+      "per_5s_by_model_and_resolution": {
+        "seedance_2_5": {
+          "480p": 12.6,
+          "720p": 32.6,
+          "1080p": 45,
+          "_note": "480p/720p derived from 17s readings (43 and 111) at the verified linear rate."
+        },
+        "kling3_0": {
+          "720p": 8.75,
+          "1080p": 10,
+          "4k": 30
+        },
+        "minimax_h3": {
+          "2k": 10,
+          "_note": "2K is its only tier — 2K at Kling's 1080p price."
+        }
+      },
+      "cr_per_second_at_delivery_resolution": {
+        "kling3_0_1080p": 2.0,
+        "minimax_h3_2k": 2.0,
+        "seedance_2_5_1080p": 9.0
+      },
+      "_headline": "At 1080p the spread across candidate models is 4.5x (Kling 3.0 at 2.0 cr/s to Seedance 2.5 at 9.0). MiniMax H3 delivers 2K for the same per-second price as Kling 3.0 at 1080p, which makes it the value outlier worth a bake-off.",
+      "other_configs": {
+        "seedance_2_0_8s_720p_high_bitrate": 36,
+        "nano_banana_pro_1k_1image": 2,
+        "seed_audio_1_0_tts_one_10word_line": 0.4
+      }
+    },
+    "_card_vs_ui": {
+      "kling3_0_1080p_5s": {
+        "card": 7,
+        "ui": 10,
+        "delta": "+43% in the UI"
+      },
+      "kling3_0_720p_5s": {
+        "card": 6,
+        "ui": 8.75,
+        "delta": "+46% in the UI"
+      },
+      "seedance_2_5": {
+        "card": "absent from the card entirely",
+        "ui": 45
+      },
+      "_lesson": "Two of the four models this pipeline actually uses are NOT on the published card, and the two that are were both understated by ~45%. Never quote from the card."
+    },
+    "measured": {},
+    "third_party_pages": {
+      "_what": "Aggregator/competitor pages that publish Higgsfield rates. Recorded to DETECT disagreement, never to price from.",
+      "soku_ai_2026-09-01": {
+        "url": "https://soku.ai/alternatives/higgsfield/pricing",
+        "publisher": "Soku AI (About Intelligence Inc.) — a COMPETITOR, on a page titled /alternatives/higgsfield/. Interested party: SECONDARY at best.",
+        "plans": {
+          "starter_usd_mo": 19,
+          "starter_credits": 270,
+          "plus_usd_mo": 59,
+          "plus_annual_usd_mo": 47,
+          "plus_credits": 1200,
+          "ultra_usd_mo": 129,
+          "ultra_annual_usd_mo": 99,
+          "ultra_credits": "3000-9000"
+        },
+        "video_credits_per_5s_quoted": {
+          "seedance_2_0_1080p": 45,
+          "kling3_0_1080p": 8
+        },
+        "veo_3_1_720_1080": "29 credits / 4s",
+        "image": {
+          "higgsfield_soul_2_0": 0.12,
+          "nano_banana_pro": 2
+        },
+        "usd_per_credit": {
+          "starter": 0.07,
+          "ultra_annual": 0.033,
+          "_spread": "2.1x for identical output"
+        },
+        "⛔_not_independent": "Its Seedance 2.0 @1080p figure (45) is IDENTICAL to the published card recorded in video_credits_per_5s. This page transcribes the vendor card rather than measuring an account — so it looks like corroboration and is not. It inherits the card's error.",
+        "⛔_kling_now_has_three_numbers": "card 7 · this page 8 · MEASURED on the Generate button for this account 10. A ~43% spread between the card and reality, and a third-party page that agrees with neither. The rule stands and is now better evidenced: price from the preflight, never from a page.",
+        "plans_also_disagree": "This page shows Ultra at $129/mo ($99 annual) for 3,000-9,000 credits; the vendor page recorded 2026-08-29 showed Ultra annual at $194/mo for 6,000-9,000. Pricing pages differ by snapshot, region or tier — ask the account what it actually pays.",
+        "corroborates": "Independently states that unlimited models and free generations are available only on higgsfield.ai, NOT via MCP/CLI — matching what this account measured in the UI. Weak corroboration (interested party), but it agrees with a measurement, which is what counts."
+      }
+    },
+    "measured_ui_2026-09-01": {
+      "_method": "Read off the Generate button in the higgsfield.ai UI, cycling model x duration x resolution. NOTHING WAS GENERATED — preflight only. Transcribed by Claude from a screen recording, so ⛔ confirm any figure before it decides money.",
+      "_account": "The account that signed in during the recording. Rates are per-account.",
+      "⛔_prices_shown_are_DISCOUNTED": {
+        "what": "The Generate button showed a struck-through list price next to the charged price on several models: MiniMax H3 2K 5s = ~~20~~ 10; Seedance 2.5 1080p 5s = ~~80~~ 45; Seedance 2.5 1080p 6s = ~~96~~ 54; MiniMax H3 2K 15s = ~~60~~ 30.",
+        "rule": "⛔ Every rate below is a PROMOTIONAL price, roughly half list on the discounted models. A quote built on it expires when the promotion does. Record the date with the rate, re-read before quoting a new month, and quote a client the LIST rate unless the discount is contractually yours."
+      },
+      "roster_models": {
+        "kling3_0": {
+          "1080p_cr_per_s": 1.5,
+          "_1080p_readings": "3s = 4.5",
+          "4k_cr_per_s": 6.0,
+          "_4k_readings": "7s = 42 · 14s = 84",
+          "catalog": "4K, 3s-15s; 'Change settings for free gens' and an Unlimited-mode toggle both present on this model"
+        },
+        "minimax_h3": {
+          "2k_cr_per_s": 2.0,
+          "_2k_readings": "5s = 10 (list 20) · 15s = 30 (list 60)",
+          "catalog": "2K, 5s-15s"
+        },
+        "minimax_h3_max": {
+          "768p_cr_per_s": 2.5,
+          "_768p_readings": "5s = 12.5",
+          "catalog": "768p, 5s-15s",
+          "⛔_note": "The 'Max' variant costs MORE per second at a LOWER resolution than plain H3 at 2K. Name does not imply value."
+        },
+        "seedance_2_5": {
+          "1080p_cr_per_s": 9.0,
+          "_1080p_readings": "5s = 45 (list 80) · 6s = 54 (list 96)",
+          "catalog": "1080p, 4s-30s; a separate 'Seedance 2.5 Edit' does 480p-720p, Edit Video and Audio"
+        }
+      },
+      "⛔_kling_1080p_no_longer_reproduces_the_earlier_reading": {
+        "earlier": "10 credits / 5s at 1080p, measured 2026-08-29 and recorded in _card_vs_ui as '+43% in the UI' against the card's 7.",
+        "now": "1.5 cr/s at 1080p, i.e. 7.5 credits for the same 5s — which lands ON the card's 7, not 43% above it.",
+        "⛔_do_not_average_them": "Two readings three days apart on the same account disagree by 25%. Either the price moved, a promotion applied, or the earlier reading was taken at a different setting (sound/audio on, a different tier). Until that is resolved, treat 1080p Kling as UNSTABLE and read the button before any quote. This is the same lesson as the card and the third-party page, arriving a third time: **the only number that is true is the one on the button in front of you.**"
+      },
+      "duration_linearity_reconfirmed": "Four models, two points each: Kling 3.0 4K 7s→42 / 14s→84; MiniMax H3 2K 5s→10 / 15s→30; Seedance 2.5 5s→45 / 6s→54. Exactly linear. Quote in cr/s, never per clip.",
+      "roster_cost_ranking_at_delivery_res": "⛔ Kling 3.0 @1080p 1.5 cr/s · MiniMax H3 @2K 2.0 cr/s · Seedance 2.5 @1080p 9.0 cr/s. Seedance is 4.5-6x the other two. **MiniMax H3 still delivers 2K for a third of Seedance's 1080p rate** — the bake-off case is stronger, not weaker.",
+      "_off_roster_seen_but_not_filed": "Other models were visible in the recording with readable rates. They are deliberately NOT recorded here: the roster is locked to kling3_0 / minimax_h3 / seedance_2_5, and filing rates for models nobody may use is how an off-roster model gets quietly re-adopted on price."
+    }
+  },
+  "_usd_layer": "⛔ Credits are not money. The same generation costs 2.1x more on Starter than on annual Ultra ($0.070 vs $0.033 per credit, this page). A quote to a client is in money, so set `plan.credit_price_usd` in clients/costs.<brand>.json from what the account ACTUALLY pays — monthly price / monthly credits — not from any published plan table.",
+  "rate_table": {
+    "_schema": "model -> resolution -> {cr_per_s, list_cr_per_s|null, min_s, max_s, measured, readings}. THE single source of truth for generation rates. scripts/rate_card.py reads it; nothing restates these numbers anywhere else.",
+    "_discount_warning": "cr_per_s is the DISCOUNTED price on the Generate button. Where list_cr_per_s is set, that is the struck-through list price the discount expires back to. Quote list unless the discount is contractually yours.",
+    "_roster_only": "Only approved models are here (the list and its amendments: _approved_roster_2026_08_29). An off-roster model has no rate on purpose — a rate is how one gets re-adopted.",
+    "_kling3_0_720p_below_floor": {
+      "_why_underscore": "Recorded, not quotable: 720p is below the 1080p quality floor (SKILL.md §4, item 11), so rate_card.py must not offer it as the cheapest roster option. It becomes a real entry only if the owner adopts the evaluation-only tier (the direct-response trial proposal of 2026-10-21 [studio history], item P9).",
+      "cr_per_s_sound_off": 1.25,
+      "cr_per_s_sound_on": 1.75,
+      "min_s": 5,
+      "max_s": 5,
+      "measured": "2026-10-21",
+      "readings": "9:16, 5 s: sound off 6.25 · sound on 8.75 · 'Use free gens' on: 0 (also with a start frame)",
+      "provenance": "UI screenshot, the owner, Higgsfield web app, plan ultra — read off the Generate button, nothing generated",
+      "consistency_check": "720p sound-off is 1.25/1.5 = 83% of the 2026-09-01 1080p rate. The sound surcharge is +0.5 cr/s; 1.5 + 0.5 = 2.0 matches the 2026-08-29 1080p reading and 8.75/5 = 1.75 matches the 2026-08-29 720p reading, so all four readings agree if the 2026-08-29 table was read with sound on. Only 5 s was read, so min_s/max_s are pinned to 5.",
+      "conflicts_with": "A vendor/third-party figure of about 2 cr/s at 720p (16 cr per 8 s) [SECONDARY, lab-00009 research R3] — likely sound-on list or a different plan; the Generate button wins (_authority)."
+    },
+    "kling3_0": {
+      "1080p": {
+        "cr_per_s": 1.5,
+        "list_cr_per_s": null,
+        "min_s": 3,
+        "max_s": 15,
+        "measured": "2026-09-01",
+        "readings": "3s = 4.5",
+        "superseded": "A 2026-08-29 reading of 2.0 cr/s was marked superseded by this one. ⚠️ SUPERSEDES IN PLACE (2026-10-21) — previously: \"A 2026-08-29 reading of 2.0 cr/s here is superseded by this one.\" The 2.0 reading is most likely the SOUND-ON price (see audio), not an error: both stand, for different audio settings.",
+        "audio": "OFF — inferred 2026-10-21, not read on the button: the 2026-10-21 720p readings put the sound-on surcharge at +0.5 cr/s (1.25 → 1.75), and 1.5 + 0.5 = 2.0 reproduces the 2026-08-29 1080p reading exactly, as 8.75/5 reproduces today's 720p sound-on reading. Confirm 1080p sound-on = 2.0 cr/s on the Generate button before quoting audio-on clips."
+      },
+      "4k": {
+        "cr_per_s": 6.0,
+        "list_cr_per_s": null,
+        "min_s": 3,
+        "max_s": 15,
+        "measured": "2026-09-01",
+        "readings": "7s = 42 · 14s = 84"
+      }
+    },
+    "minimax_h3": {
+      "2k": {
+        "cr_per_s": 2.0,
+        "list_cr_per_s": 4.0,
+        "min_s": 5,
+        "max_s": 15,
+        "measured": "2026-09-01",
+        "readings": "5s = 10 (list 20) · 15s = 30 (list 60)"
+      }
+    },
+    "minimax_h3_max": {
+      "768p": {
+        "cr_per_s": 2.5,
+        "list_cr_per_s": null,
+        "min_s": 5,
+        "max_s": 15,
+        "measured": "2026-09-01",
+        "readings": "5s = 12.5",
+        "⛔": "Costs MORE per second at a LOWER resolution than plain H3 at 2K."
+      }
+    },
+    "seedance_2_5": {
+      "720p": {
+        "cr_per_s": 6.52,
+        "min_s": 4,
+        "max_s": 30,
+        "measured": "2026-08-29",
+        "readings": "derived: 720p = 32.6 cr per 5 s read in the UI on 2026-08-29, when 1080p read 45 per 5 s (9.0 cr/s) — the 1080p rate is unchanged since (9.0 cr/s on 2026-09-01), so the 720p rate is carried at the same ratio. Re-read get_cost on the first 720p call.",
+        "_v2_49": "added 2026-11-05 with the 720p video floor (the author: '720p finals + upscale')"
+      },
+      "1080p": {
+        "cr_per_s": 9.0,
+        "list_cr_per_s": 16.0,
+        "min_s": 4,
+        "max_s": 30,
+        "measured": "2026-09-01",
+        "readings": "5s = 45 (list 80) · 6s = 54 (list 96)"
+      }
+    },
+    "_authority": "⛔ THE LIVE RATES. Measured on the Generate button 2026-09-01 and confirmed by the account owner as current. Everything dated earlier in this file — the published card, the third-party page, the 2026-08-29 UI pass — is SUPERSEDED history kept for provenance only. Nothing outside this table may state a rate: scripts/rate_card.py reads it.",
+    "gemini_omni_flash_1_1": {
+      "1080p": {
+        "cr_per_s": 4.5,
+        "list_cr_per_s": null,
+        "min_s": 3,
+        "max_s": 10,
+        "measured": "2026-09-19",
+        "readings": "get_cost: 3 s = 13.5 · 5 s = 22.5 · 10 s = 45 (image-to-video); 5 s = 22.5 (reference-to-video) — linear, mode-independent",
+        "⛔": "2.25x minimax_h3's rate, at a LOWER resolution than its 2K"
+      },
+      "4k": {
+        "cr_per_s": 9.0,
+        "list_cr_per_s": null,
+        "min_s": 3,
+        "max_s": 10,
+        "measured": "2026-09-19",
+        "readings": "get_cost: 5 s = 45 · 10 s = 90"
+      }
+    },
+    "wan3_0": {
+      "1080p": {
+        "cr_per_s": 3.5,
+        "list_cr_per_s": null,
+        "min_s": 2,
+        "max_s": 30,
+        "measured": "2026-10-23",
+        "readings": "get_cost: 5 s = 17.5 · 10 s = 35 (generate_audio false); 5 s = 17.5 with generate_audio true; 5 s = 17.5 with enable_thinking true; 720p 5 s = 8.75 (no row: under the floor)",
+        "⛔": "720p is the model's DEFAULT and has no row here on purpose. duration -1 (smart length) is offered only on unlimited generations and is outside 2-30, so the lint refuses it. Priced in lab record lab-00010 (not shipped), 0 credits."
+      }
+    },
+    "kling4_0": {
+      "1080p": {
+        "cr_per_s": 2.0,
+        "list_cr_per_s": null,
+        "min_s": 3,
+        "max_s": 30,
+        "measured": "2026-10-25",
+        "pricing": "per_call",
+        "pricing_why": "[stated · owner, chat 2026-10-25] \"Kling 4.0 - prices changes based on several factors not related to length, or video settings\". No per-second rate predicts a Kling 4.0 call, so rate_card.py refuses to quote one: open the job with `estimate UNPRICED [unpriced]`, probe each exact call with get_cost inside it, and write the figure the probe returned. cr_per_s below is the last reading, kept as history, never a quote.",
+        "owner_reading_2026_10_25": "10 cr per 5 s, discounted [stated · owner, chat 2026-10-25] — one observation; the factors behind it were not stated.",
+        "readings": "get_cost: 5 s = 5 · 10 s = 10 · 30 s = 30 (image-to-video); 5 s = 5 (reference-to-video and video-edit); 720p 5 s = 2.5 (no row: under the floor)",
+        "⛔": "Priced per call (see pricing_why). Readings so far: get_cost 2026-10-23, 5 s = 5 cr at 1080p in its launch week (lab record lab-00010 (not shipped), 0 credits); 2026-10-25, 10 cr per 5 s. ⚠️ SUPERSEDES IN PLACE (2026-10-25) — previously: \"Quote at 2.0 cr/s until the Generate button says which row the owner's figure belongs to\". The owner says the price moves with factors other than duration and settings, so there is no row to settle: every Kling 4.0 call is probed."
+      }
+    }
+  },
+  "image_rate_table": {
+    "_schema": "model -> resolution -> {cr_per_image, measured, readings}. PER IMAGE, not per second — image models are billed by the picture and the video `rate_table` schema cannot express them. That is WHY there was no entry: not an omission of one model, a missing half of the file.",
+    "_why_this_exists": "⛔ 2026-09-17. lab-00001-fov was opened with `estimate 0 cr [estimated]` because rate_card.py could not price a still. The gate accepted the 0, so the 60-credit envelope was compared against nothing for the whole run. Actual: 12 cr. The gate now refuses `estimate 0 cr` against a non-zero envelope; this table is what makes writing a real figure possible.",
+    "_authority": "MEASURED from the account's own `transactions` ledger, which is the surface that takes the money. Not the pricing page, not the Generate button. Where a reading disagrees with an earlier one, both are kept — see nano_banana_pro.2k.superseded.",
+    "_alias_note": "The billing ledger names these charges \"Nano Banana Pro\" while the generation response reports `model: nano_banana_2`. Higgsfield's own video-explainer skill says `nano_banana_2` IS the public id for the Pro model; their model catalog lists the two as distinct. Two surfaces say alias, one says distinct. Both ids are priced here at the same rate BECAUSE that is what was observed — if they ever diverge, this is the line that was wrong.",
+    "nano_banana_pro": {
+      "2k": {
+        "cr_per_image": 2.0,
+        "measured": "2026-09-17",
+        "readings": "6 images = 12 cr (a calibration previz, 03:11 UTC) · 32 images = 64 cr (a stills job, 05:41-05:49 UTC) — 38 rows, all 2.0, no variance",
+        "superseded": "2026-09-14: the same display name billed 4.0 cr per image (2 rows). Either the price halved or those calls were a different tier. Not resolved — if a reading of 4 reappears, this entry is stale, not wrong."
+      }
+    },
+    "nano_banana_2": {
+      "2k": {
+        "cr_per_image": 2.0,
+        "measured": "2026-09-17",
+        "readings": "same 38 rows — this is the id the API RETURNS for the calls above; see _alias_note"
+      }
+    },
+    "gpt_image_2_6": {
+      "2k": {
+        "cr_per_image": 2.75,
+        "measured": "2026-11-10",
+        "readings": "4 images = 11 cr at quality `high`, 3:2 (lab-00021-seedream-edit, 23:07-23:48 UTC): 4 `transactions` rows, all 2.75, no variance; 3 with a reference picture (edits), 1 of them with background `transparent`. `get_cost` returned 2.75 for the same calls, and for a call with no reference",
+        "quality": "high",
+        "note": "ONE tier only. This row is 2k at quality `high`, the house floor. Nothing here prices 1k, 4k, `xhigh`, `max` or a GIF/SVG: for any of those, probe with get_cost first and add a row. Earlier `transactions` rows for this model (2026-11-06, 2026-11-08: 4 rows, all 2.75) agree, but their settings were not recorded."
+      }
+    },
+    "seedream_5_5": {
+      "2k": {
+        "cr_per_image": 3.5,
+        "measured": "2026-11-10",
+        "readings": "4 images = 14 cr, 3:2 (lab-00021-seedream-edit, 23:08-23:48 UTC): 4 `transactions` rows, all 3.5, no variance; all with a reference picture (edits). `get_cost` returned 3.5 for the same calls, for a call with no reference, and with background `transparent`",
+        "note": "OFF-ROSTER. Priced because one evaluation job used it (2026-11-10, this job only: 'Yes, 40 credits'). A price row is not permission: frames, sheets and image edits run on gpt_image_2_6 unless the owner says otherwise. It returns 2496x1664 at 2k 3:2. The gate (to v2.52.3) refuses `background` on it, so its transparent output is untested."
+      }
+    },
+    "_gpt_image_2_6_history": "v2.49.0 (2026-11-05: 'use GPT 2.6 on Higgsfield primarily') made gpt_image_2_6 the primary image model with NO price row; rate_card.py refused to price it. First reading 2026-11-10 (v2.52.3), above. Its defaults are quality `low` and resolution `1k`; the lint and the gate require both stated."
+  },
+  "call_contract": {
+    "_source": "[PRIMARY · Higgsfield models_explore list/get · 2026-09-19] for roles, modes, resolutions and audio params · [PRIMARY · measured on a production job, 2026-09-19; the close-out note of that date is in the studio's history] for what start_image actually DOES",
+    "_why": "One contract per roster VIDEO model, read by prompt_lint.call_shape() — which is the ONE place that decides how a clip call is built. gate.py checks against it and preflight emits it, so the two cannot disagree. Until 2026-09-19 the skill used a role vocabulary copied from an older MiniMax panel (image / character / reference / start_frame / element / video / motion / audio / voice) that NO roster model declares; start frames worked only because the server coerces a lone `image`, and an end frame could not be expressed at all.",
+    "_fields": {
+      "roles": "the ONLY medias[].role names the model takes",
+      "frames": "does start_image act as a TRUE first frame? true / false / null = not yet measured here",
+      "mix": "may start_image/end_image share a call with *_references? null = unmeasured, and is TREATED AS FALSE — a 422 costs a round trip, a wrong guess costs a take",
+      "modes": "the model's own `mode` values. Never a shared list: Kling's `mode` is a quality tier, Seedance's and Gemini's are generation modes",
+      "mode_frames / mode_refs": "the mode to send when the call binds frames / only references",
+      "resolutions": "the model's resolution options as the API spells them (MiniMax is '2K', not '2k')",
+      "audio": "param = the switch that silences it (null = there is none); off = the value; default_on",
+      "ref_limits": "per-call reference caps {image, video, audio} and, where stated, combined seconds. Absent = prompt_lint's house caps (9 / 3 / 3, MiniMax H3's panel). Over a cap is a WARN naming the model",
+      "prompt_max_chars": "the model's TRUE prompt ceiling in characters (Python len, code points) — prompt_lint FAILS above it and WARNS above the house 2,500 where the ceiling is higher. An object {english, non_english} is Kling 4.0's mixed rule: E/english + N/non_english must stay <= 1 (E = ASCII characters, an assumption). `house_ceiling: true` marks a house figure standing in for an unknown vendor cap (v2.45, 2026-10-29)",
+      "negative": "`field` = the vendor takes a negative prompt (cap in negative_max_chars, null = unstated → the house 500); `none` = no negative field: a [SUPPRESS] list is DROPPED, never sent (the lint warns, the gate refuses a negative_prompt); `unknown` = not documented → the house 500",
+      "limit_source": "where the ceiling was read: url, read date, confidence (confirmed · reseller schema · Higgsfield · secondary · unknown)",
+      "shot_max_chars / max_shots": "Kling's multi-shot limits: each stage of a `form: multishot` prompt ≤ shot_max_chars, at most max_shots stages"
+    },
+    "kling3_0": {
+      "roles": [
+        "start_image",
+        "end_image"
+      ],
+      "frames": true,
+      "mix": null,
+      "modes": [
+        "std",
+        "pro",
+        "4k"
+      ],
+      "mode_frames": null,
+      "mode_refs": null,
+      "resolutions": null,
+      "audio": {
+        "param": "sound",
+        "off": "off",
+        "default_on": true
+      },
+      "evidence": "frames: RUN 2026-08-29 (a close-out note of 2026-08-29 on first-and-last-frame against prompted motion [studio history]) — a clean push-in, and FLF gives exactly the move implied by the DIFFERENCE between the frames. Takes NO references at all.",
+      "prompt_max_chars": 2500,
+      "negative": "field",
+      "negative_max_chars": 2500,
+      "shot_max_chars": 512,
+      "max_shots": 6,
+      "limit_source": {
+        "url": "https://app.klingai.com/global/dev/document-api",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "legacy /v1/videos/text2video and /image2video: 'Cannot exceed 2500 characters', negative_prompt 2,500; the new /text-to-video/kling-3.0 endpoint takes 3,072 (recommended <= 2,500) with no negative field. Which endpoint Higgsfield calls is not known, so the lower ceiling holds"
+      },
+      "speech_syntax": {
+        "form": "inline per speaker: Name (how): \"the line\"",
+        "pattern": "^\\s*@?[A-Z][\\w .'-]{0,30}(\\s*\\([^)]*\\))?\\s*(:|says,)\\s*[\\\"“]",
+        "status": "documented",
+        "source": "Kling 3.0 prompt guide [PRIMARY], prompting-craft.md §9.2",
+        "checked": "2026-11-15"
+      }
+    },
+    "minimax_h3": {
+      "roles": [
+        "start_image",
+        "end_image",
+        "image_references",
+        "video_references",
+        "audio_references"
+      ],
+      "frames": true,
+      "mix": false,
+      "modes": [],
+      "mode_frames": null,
+      "mode_refs": null,
+      "ref_limits": {
+        "image": 9,
+        "video": 3,
+        "audio": 3,
+        "_source": "[MEASURED · MiniMax H3 References panel, verified 2026-08-29]"
+      },
+      "resolutions": [
+        "2K"
+      ],
+      "audio": {
+        "param": null,
+        "off": null,
+        "default_on": false
+      },
+      "evidence": "2026-09-19 (a close-out note of 2026-09-19 from one production job): start_image ALONE is a true first frame, corr 1.00 to the plate. ⛔ 422 \"start_image/end_image cannot be mixed with reference media\". With image_references + video_references the first frame is close, not exact: 0.97. 2K only (1440x2560 at 9:16), 24 fps: 5 s = 124 frames, 8 s = 192, 10 s = 243. Takes ran ~5-14 min.",
+      "prompt_max_chars": 7000,
+      "negative": "none",
+      "limit_source": {
+        "url": "https://platform.minimax.io/docs/api-reference/video-generation-v2-create.md",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "'maximum of 7000 characters per text'; no negative field"
+      }
+    },
+    "minimax_h3_max": {
+      "roles": [
+        "start_image",
+        "end_image",
+        "image_references",
+        "video_references",
+        "audio_references"
+      ],
+      "frames": null,
+      "mix": null,
+      "modes": [],
+      "mode_frames": null,
+      "mode_refs": null,
+      "resolutions": [
+        "480p",
+        "768p"
+      ],
+      "audio": {
+        "param": null,
+        "off": null,
+        "default_on": false
+      },
+      "evidence": "schema only. Same vendor as minimax_h3, so `mix` is treated as false until measured. Its only rows are 768p, under the 1080p floor, so no clip lints on it anyway.",
+      "prompt_max_chars": 7000,
+      "negative": "none",
+      "limit_source": {
+        "url": "https://platform.minimax.io/docs/api-reference/video-generation-v2-create.md",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "the MiniMax H3 line (H3, Highspeed, Lite, Max) shares the 7,000-character text limit"
+      }
+    },
+    "seedance_2_5": {
+      "roles": [
+        "start_image",
+        "end_image",
+        "image_references",
+        "video_references",
+        "audio_references"
+      ],
+      "frames": false,
+      "mix": null,
+      "modes": [
+        "t2v",
+        "omni_reference",
+        "video_edit",
+        "video_extension"
+      ],
+      "mode_frames": null,
+      "mode_refs": "omni_reference",
+      "ref_limits": {
+        "image": 30,
+        "video": 10,
+        "audio": 10,
+        "video_seconds_total": 30,
+        "audio_seconds_total": 30,
+        "_source": "[VENDOR · Higgsfield Seedance 2.5 \"New capabilities (Part 2)\" deck, supplied 2026-10-25]: up to 30 images (each up to 4K), 10 videos and 10 audio clips per generation; videos and audio each at most 30 s combined. Video editing: source under 20 s with 1-5 images. Not measured here"
+      },
+      "resolutions": [
+        "480p",
+        "720p",
+        "1080p"
+      ],
+      "audio": {
+        "param": "generate_audio",
+        "off": false,
+        "default_on": true
+      },
+      "evidence": "2026-09-19 (a close-out note of 2026-09-19 from one production job): ⛔ rejects start_image unless mode is omni_reference, and in that mode maps it to reference_images — it is NOT a first frame: corr to the plate 0.53 (S3a) and 0.96 (S3b). So no end frame either. generate_audio defaults to TRUE.",
+      "prompt_max_chars": 20000,
+      "negative": "none",
+      "warn_cjk_over": 500,
+      "limit_source": {
+        "url": "https://docs.byteplus.com/en/docs/ModelArk/1520757",
+        "read": "2026-11-05",
+        "confidence": "house (observed, MCP unverified)",
+        "note": "v2.49.0 (2026-11-05, 'template + long prompts'): 20,000 is the HOUSE ceiling for the scene form. Evidence: festival-winning Seedance 2.5 projects ran prompts of a median ~6,400 chars and up to 45,444, accepted by the Cinema Studio web app (the studio's research notes). BytePlus publishes no hard cap, only a recommendation (500 Chinese characters / 1,000 English words); 3,900 is Higgsfield's ad-multiplier v1.5 WORKFLOW validator, not the model's cap, and the multi-shot form keeps it. The MCP's own cap is unverified: the first long call is preceded by get_cost."
+      },
+      "speech_syntax": {
+        "form": "{ } for dialogue, ( ) music and ambience, < > SFX — reported, not confirmed in a take",
+        "pattern": null,
+        "status": "unverified",
+        "source": "secondary, prompting-craft.md §9.2",
+        "checked": "2026-11-15"
+      }
+    },
+    "gemini_omni_flash_1_1": {
+      "roles": [
+        "start_image",
+        "end_image",
+        "image_references",
+        "video_references"
+      ],
+      "frames": null,
+      "mix": null,
+      "modes": [
+        "text-to-video",
+        "image-to-video",
+        "reference-to-video",
+        "edit"
+      ],
+      "mode_required": true,
+      "mode_frames": "image-to-video",
+      "mode_refs": "reference-to-video",
+      "resolutions": [
+        "360p",
+        "720p",
+        "1080p",
+        "4k"
+      ],
+      "audio": {
+        "param": null,
+        "off": null,
+        "default_on": true
+      },
+      "evidence": "schema only, 2026-09-19. `mode` is REQUIRED. Frame and reference generation are separate modes, so `mix` is treated as false. Native audio with NO off switch. Resolution defaults to 720p — under the floor; never let it default. Durations 3-10 s, default 8. First-frame fidelity NOT yet measured in this pipeline: check corr on the first take.",
+      "prompt_max_chars": 20000,
+      "house_ceiling": true,
+      "negative": "unknown",
+      "limit_source": {
+        "url": "https://ai.google.dev/gemini-api/docs/models/gemini-omni-flash",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "no prompt cap in reach: the limit is the 1,048,576-token context window. 20,000 is a HOUSE sanity cap, not the vendor's; a negative field is not stated"
+      }
+    },
+    "wan3_0": {
+      "roles": [
+        "start_image",
+        "end_image",
+        "image_references",
+        "video_references",
+        "audio_references"
+      ],
+      "frames": null,
+      "mix": null,
+      "modes": [],
+      "mode_frames": null,
+      "mode_refs": null,
+      "resolutions": [
+        "480p",
+        "720p",
+        "1080p"
+      ],
+      "audio": {
+        "param": "generate_audio",
+        "off": false,
+        "default_on": true
+      },
+      "evidence": "schema only, models_explore 2026-10-23: no `mode` parameter; resolution defaults to 720p (under the floor — never let it default); generate_audio defaults to TRUE; duration 2-30 s or -1 (unlimited generations only); enable_thinking optional (same price). First-frame fidelity and whether frames may share a call with references are NOT measured: check corr on the first take.",
+      "prompt_max_chars": 20000,
+      "truncates": true,
+      "negative": "none",
+      "limit_source": {
+        "url": "https://www.alibabacloud.com/help/en/model-studio/wan3-video-generation-api-reference",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "20,000 characters, and 'Content exceeding this limit will be automatically truncated' — no error, so the lint must FAIL; no negative field (Alibaba's Wan 3.0 guide writes exclusions into the prompt)"
+      }
+    },
+    "kling4_0": {
+      "roles": [
+        "start_image",
+        "end_image",
+        "image_references",
+        "video_references"
+      ],
+      "frames": null,
+      "mix": null,
+      "modes": [
+        "text-to-video",
+        "image-to-video",
+        "reference-to-video",
+        "video-edit"
+      ],
+      "mode_required": true,
+      "mode_frames": "image-to-video",
+      "mode_refs": "reference-to-video",
+      "resolutions": [
+        "720p",
+        "1080p"
+      ],
+      "audio": {
+        "param": null,
+        "off": null,
+        "default_on": null
+      },
+      "evidence": "schema only, models_explore 2026-10-23: `mode` defaults to text-to-video, so it is REQUIRED here; resolution defaults to 1080p; duration 3-30 s, default 10; up to seven Kling elements (not used by this pipeline). No sound switch is documented and whether it generates audio is unknown: check the first take for an audio track (strip_embedded_audio.py if one is there). First-frame fidelity and frame+reference mixing NOT measured.",
+      "prompt_max_chars": {
+        "english": 26000,
+        "non_english": 11000
+      },
+      "negative": "none",
+      "limit_source": {
+        "url": "https://app.klingai.com/global/dev/document-api",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "'English-only input supports up to 26,000 characters'; non-English only 11,000; mixed text must satisfy E/26000 + N/11000 <= 1 (doc bundle kling-4-params; fal's schema enforces maxLength 26000). The '8,000' in blogs is TOKENS. Higgsfield may cap kling4_0 lower — no Higgsfield surface shows one (open question 1). No negative field: the prompt carries both"
+      }
+    }
+  },
+  "prompt_limits": {
+    "_why": "Prompt ceilings for every model id that has NO call_contract row — the image models a frame or an edit is written for, and off-roster ids — in the same fields call_contract uses (see call_contract._fields). prompt_lint.prompt_limit() reads call_contract first, then this table, then `_families` by id prefix, and falls back to the house 2,500 as a FAIL marked 'house ceiling, unknown vendor cap'. Research: the studio's research notes, read 2026-10-29. Higgsfield's own MCP shows no prompt length for any model, so a Higgsfield-side cap below a vendor figure stays possible (open question 1).",
+    "nano_banana_pro": {
+      "prompt_max_chars": 50000,
+      "negative": "none",
+      "limit_source": {
+        "url": "https://ai.google.dev/gemini-api/docs/models/gemini-3-pro-image",
+        "read": "2026-10-29",
+        "confidence": "reseller schema",
+        "note": "Google: 65,536 input tokens shared by text and reference images; 50,000 is fal's maxLength (≈12.5K tokens, well inside); no negative field"
+      }
+    },
+    "nano_banana_2": {
+      "prompt_max_chars": 2500,
+      "house_ceiling": true,
+      "negative": "unknown",
+      "limit_source": {
+        "url": "",
+        "read": "2026-10-29",
+        "confidence": "unknown",
+        "note": "not in the 2026-10-29 research — the house ceiling stands until it is read"
+      }
+    },
+    "gpt_image_2": {
+      "prompt_max_chars": 32000,
+      "negative": "none",
+      "warn_nonascii_over": 11000,
+      "limit_source": {
+        "url": "https://pypi.org/project/openai/",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "OpenAI Python SDK 3.41.0 image_generate_params: 'The maximum length is 32000 characters'. A relay test reports an effective 8,192-token cap past which the prompt is ignored silently [secondary] — the lint warns when a mostly non-ASCII prompt passes 11,000"
+      }
+    },
+    "gpt_image_2_5": {
+      "prompt_max_chars": 32000,
+      "negative": "none",
+      "warn_nonascii_over": 11000,
+      "limit_source": {
+        "url": "https://pypi.org/project/openai/",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "as gpt_image_2"
+      }
+    },
+    "flux_2": {
+      "prompt_max_chars": 2500,
+      "house_ceiling": true,
+      "negative": "none",
+      "limit_source": {
+        "url": "https://docs.bfl.ml/api-reference/models/generate-or-edit-an-image-with-flux2-[pro].md",
+        "read": "2026-10-29",
+        "confidence": "unknown",
+        "note": "no maxLength in the BFL schema (vendor silent); BFL: most FLUX models take no negative prompt"
+      }
+    },
+    "flux_3_image": {
+      "prompt_max_chars": 2500,
+      "house_ceiling": true,
+      "negative": "none",
+      "limit_source": {
+        "url": "https://docs.bfl.ml/api-reference/models/generate-an-image-with-flux-3.md",
+        "read": "2026-10-29",
+        "confidence": "unknown",
+        "note": "no maxLength in the BFL schema"
+      }
+    },
+    "flux_kontext": {
+      "prompt_max_chars": 2500,
+      "house_ceiling": true,
+      "negative": "none",
+      "limit_source": {
+        "url": "https://docs.bfl.ml/api-reference/models/edit-or-create-an-image-with-flux1-kontext-[pro].md",
+        "read": "2026-10-29",
+        "confidence": "unknown",
+        "note": "no maxLength in the BFL schema"
+      }
+    },
+    "flux_3_video": {
+      "prompt_max_chars": 2500,
+      "house_ceiling": true,
+      "negative": "none",
+      "limit_source": {
+        "url": "https://docs.bfl.ml/api-reference/utility/generate-a-video-with-flux-3.md",
+        "read": "2026-10-29",
+        "confidence": "unknown",
+        "note": "no maxLength in the BFL schema"
+      }
+    },
+    "flux_3_video_edit": {
+      "prompt_max_chars": 4096,
+      "negative": "none",
+      "limit_source": {
+        "url": "https://docs.bfl.ml/api-reference/tools/video-edit.md",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "maxLength 4096"
+      }
+    },
+    "seedream_v4_5": {
+      "prompt_max_chars": 2500,
+      "house_ceiling": true,
+      "negative": "none",
+      "warn_words_over": 600,
+      "warn_cjk_over": 300,
+      "limit_source": {
+        "url": "https://docs.byteplus.com/en/docs/ModelArk/1541523",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "no hard cap published; the vendor recommends no more than 300 Chinese characters or 600 English words"
+      }
+    },
+    "seedream_v5_pro": {
+      "prompt_max_chars": 2500,
+      "house_ceiling": true,
+      "negative": "none",
+      "warn_words_over": 600,
+      "warn_cjk_over": 300,
+      "limit_source": {
+        "url": "https://docs.byteplus.com/en/docs/ModelArk/1541523",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "as seedream_v4_5"
+      }
+    },
+    "seedream_5_0_flash": {
+      "prompt_max_chars": 2500,
+      "house_ceiling": true,
+      "negative": "none",
+      "warn_words_over": 600,
+      "warn_cjk_over": 300,
+      "limit_source": {
+        "url": "https://docs.byteplus.com/en/docs/ModelArk/1541523",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "as seedream_v4_5"
+      }
+    },
+    "seedream_v5_lite": {
+      "prompt_max_chars": 2500,
+      "house_ceiling": true,
+      "negative": "none",
+      "warn_words_over": 600,
+      "warn_cjk_over": 300,
+      "limit_source": {
+        "url": "https://docs.byteplus.com/en/docs/ModelArk/1541523",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "as seedream_v4_5"
+      }
+    },
+    "soul_2": {
+      "prompt_max_chars": 2500,
+      "house_ceiling": true,
+      "negative": "unknown",
+      "limit_source": {
+        "url": "",
+        "read": "2026-10-29",
+        "confidence": "unknown",
+        "note": "Higgsfield only; models_explore shows no prompt length and no negative field"
+      }
+    },
+    "soul_v2": {
+      "prompt_max_chars": 2500,
+      "house_ceiling": true,
+      "negative": "unknown",
+      "limit_source": {
+        "url": "",
+        "read": "2026-10-29",
+        "confidence": "unknown",
+        "note": "Higgsfield only"
+      }
+    },
+    "soul_cinematic": {
+      "prompt_max_chars": 2500,
+      "house_ceiling": true,
+      "negative": "unknown",
+      "limit_source": {
+        "url": "",
+        "read": "2026-10-29",
+        "confidence": "unknown",
+        "note": "Higgsfield only"
+      }
+    },
+    "cinematic_studio_3_0": {
+      "prompt_max_chars": 2500,
+      "house_ceiling": true,
+      "negative": "unknown",
+      "limit_source": {
+        "url": "",
+        "read": "2026-10-29",
+        "confidence": "unknown",
+        "note": "Higgsfield only; models_explore get shows no prompt field"
+      }
+    },
+    "cinematic_studio_video_3_5": {
+      "prompt_max_chars": 2500,
+      "house_ceiling": true,
+      "negative": "unknown",
+      "style_prompt_max_chars": 2000,
+      "limit_source": {
+        "url": "",
+        "read": "2026-10-29",
+        "confidence": "Higgsfield",
+        "note": "main prompt unknown; style_prompt <= 2,000; multi_prompt <= 6 shots"
+      }
+    },
+    "cinematic_studio_video_4_0": {
+      "prompt_max_chars": 2500,
+      "house_ceiling": true,
+      "negative": "unknown",
+      "limit_source": {
+        "url": "",
+        "read": "2026-10-29",
+        "confidence": "unknown",
+        "note": "Higgsfield only; its mode set matches Seedance 2.5's, the backend is not stated"
+      }
+    },
+    "cinematic_studio_2_5": {
+      "prompt_max_chars": 2500,
+      "house_ceiling": true,
+      "negative": "unknown",
+      "limit_source": {
+        "url": "",
+        "read": "2026-10-29",
+        "confidence": "unknown",
+        "note": "Higgsfield only (image)"
+      }
+    },
+    "ideogram_4_5": {
+      "prompt_max_chars": 10000,
+      "negative": "field",
+      "negative_max_chars": null,
+      "limit_source": {
+        "url": "https://developer.ideogram.ai/v2/api-reference/images/generate/ideogram-3",
+        "read": "2026-10-29",
+        "confidence": "reseller schema",
+        "note": "vendor states no limit; fal's ideogram/v4.5 maxLength 10,000; a negative field exists with no stated length"
+      }
+    },
+    "kling_omni_image": {
+      "prompt_max_chars": 2500,
+      "negative": "none",
+      "limit_source": {
+        "url": "https://app.klingai.com/global/dev/document-api",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "/v1/images/omni-image: 2,500; no negative field"
+      }
+    },
+    "kling_image": {
+      "prompt_max_chars": 2500,
+      "negative": "field",
+      "negative_max_chars": 2500,
+      "limit_source": {
+        "url": "https://app.klingai.com/global/dev/document-api",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "/v1/images/generations (kling-v3, v2.1): 2,500; negative 2,500 on text-to-image only"
+      }
+    },
+    "kling3_0_turbo": {
+      "prompt_max_chars": 2500,
+      "negative": "none",
+      "shot_max_chars": 512,
+      "max_shots": 6,
+      "limit_source": {
+        "url": "https://app.klingai.com/global/dev/document-api",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "i2v 2,500 (t2v 3,072); shots <= 512"
+      }
+    },
+    "kling_o3_image_reference": {
+      "prompt_max_chars": 2500,
+      "negative": "none",
+      "shot_max_chars": 512,
+      "max_shots": 6,
+      "limit_source": {
+        "url": "https://app.klingai.com/global/dev/document-api",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "legacy /v1/videos/omni-video 2,500; new endpoint 3,072; multi-shot <= 6 x 512"
+      }
+    },
+    "kling_o3_flf": {
+      "prompt_max_chars": 2500,
+      "negative": "none",
+      "shot_max_chars": 512,
+      "max_shots": 6,
+      "limit_source": {
+        "url": "https://app.klingai.com/global/dev/document-api",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "as kling_o3_image_reference"
+      }
+    },
+    "kling_video_edit": {
+      "prompt_max_chars": 2500,
+      "negative": "none",
+      "shot_max_chars": 512,
+      "max_shots": 6,
+      "limit_source": {
+        "url": "https://app.klingai.com/global/dev/document-api",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "as kling_o3_image_reference"
+      }
+    },
+    "kling2_6": {
+      "prompt_max_chars": 2500,
+      "negative": "field",
+      "negative_max_chars": 2500,
+      "limit_source": {
+        "url": "https://app.klingai.com/global/dev/document-api",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "legacy v2.x endpoints: 2,500, negative 2,500"
+      }
+    },
+    "minimax_hailuo": {
+      "prompt_max_chars": 2000,
+      "negative": "none",
+      "limit_source": {
+        "url": "https://platform.minimax.io/docs/api-reference/video-generation-t2v.md",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "'up to 2000 characters'"
+      }
+    },
+    "wan3_0_prime": {
+      "prompt_max_chars": 20000,
+      "truncates": true,
+      "negative": "none",
+      "limit_source": {
+        "url": "https://www.alibabacloud.com/help/en/model-studio/wan3-video-generation-api-reference",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "as wan3_0; truncated silently"
+      }
+    },
+    "wan2_7": {
+      "prompt_max_chars": 5000,
+      "truncates": true,
+      "negative": "field",
+      "negative_max_chars": 500,
+      "limit_source": {
+        "url": "https://www.alibabacloud.com/help/en/model-studio/text-to-video-api-reference",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "5,000, auto-truncated; negative 500, auto-truncated"
+      }
+    },
+    "wan2_6": {
+      "prompt_max_chars": 1500,
+      "truncates": true,
+      "negative": "field",
+      "negative_max_chars": 500,
+      "limit_source": {
+        "url": "https://www.alibabacloud.com/help/en/model-studio/text-to-video-api-reference",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "Wan 2.6/2.5: 1,500, auto-truncated; negative 500"
+      }
+    },
+    "seedance_2_0": {
+      "prompt_max_chars": 3900,
+      "negative": "none",
+      "warn_cjk_over": 500,
+      "limit_source": {
+        "url": "https://docs.byteplus.com/en/docs/ModelArk/1520757",
+        "read": "2026-10-29",
+        "confidence": "Higgsfield",
+        "note": "as seedance_2_5"
+      }
+    },
+    "ad_multiplier": {
+      "prompt_max_chars": 3900,
+      "negative": "none",
+      "limit_source": {
+        "url": "",
+        "read": "2026-10-29",
+        "confidence": "Higgsfield",
+        "note": "Higgsfield's ad-multiplier v1.5 validator: at most 3,900 characters"
+      }
+    },
+    "veo3_1": {
+      "prompt_max_chars": 3500,
+      "negative": "field",
+      "negative_max_chars": null,
+      "limit_source": {
+        "url": "https://ai.google.dev/gemini-api/docs/models/veo-3.1-generate-preview",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "1,024 tokens of text (≈4,100 chars at 4 c/t) less ~15% for the dense block format; whether over-length truncates or errors is unknown"
+      }
+    },
+    "veo3_1_lite": {
+      "prompt_max_chars": 3500,
+      "negative": "field",
+      "negative_max_chars": null,
+      "limit_source": {
+        "url": "https://ai.google.dev/gemini-api/docs/models/veo-3.1-generate-preview",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "as veo3_1"
+      }
+    },
+    "grok_video_v15": {
+      "prompt_max_chars": 4096,
+      "negative": "none",
+      "limit_source": {
+        "url": "https://docs.x.ai/developers/rest-api-reference/inference/videos.md",
+        "read": "2026-10-29",
+        "confidence": "reseller schema",
+        "note": "xAI states no limit; fal maxLength 4,096"
+      }
+    },
+    "grok_video_v15_lite": {
+      "prompt_max_chars": 4096,
+      "negative": "none",
+      "limit_source": {
+        "url": "https://docs.x.ai/developers/rest-api-reference/inference/videos.md",
+        "read": "2026-10-29",
+        "confidence": "reseller schema",
+        "note": "as grok_video_v15"
+      }
+    },
+    "imagen_4": {
+      "prompt_max_chars": 1900,
+      "negative": "unknown",
+      "limit_source": {
+        "url": "https://ai.google.dev/gemini-api/docs/models/imagen",
+        "read": "2026-10-29",
+        "confidence": "confirmed",
+        "note": "480 tokens (≈1,900 chars); not on Higgsfield"
+      }
+    },
+    "_families": {
+      "_why": "An id that is not listed above takes the entry of its longest matching prefix — the most conservative member of the family",
+      "kling": {
+        "prompt_max_chars": 2500,
+        "negative": "unknown",
+        "limit_source": {
+          "url": "https://app.klingai.com/global/dev/document-api",
+          "read": "2026-10-29",
+          "confidence": "confirmed",
+          "note": "every Kling endpoint read takes at least 2,500"
+        }
+      },
+      "wan2": {
+        "prompt_max_chars": 800,
+        "truncates": true,
+        "negative": "field",
+        "negative_max_chars": 500,
+        "limit_source": {
+          "url": "https://www.alibabacloud.com/help/en/model-studio/text-to-video-api-reference",
+          "read": "2026-10-29",
+          "confidence": "confirmed",
+          "note": "Wan 2.2/2.1: 800, auto-truncated — the lowest of the 2.x line"
+        }
+      },
+      "seedream": {
+        "prompt_max_chars": 2500,
+        "house_ceiling": true,
+        "negative": "none",
+        "warn_words_over": 600,
+        "warn_cjk_over": 300,
+        "limit_source": {
+          "url": "https://docs.byteplus.com/en/docs/ModelArk/1541523",
+          "read": "2026-10-29",
+          "confidence": "confirmed",
+          "note": "no hard cap published"
+        }
+      },
+      "flux": {
+        "prompt_max_chars": 2500,
+        "house_ceiling": true,
+        "negative": "none",
+        "limit_source": {
+          "url": "https://docs.bfl.ml/",
+          "read": "2026-10-29",
+          "confidence": "unknown",
+          "note": "BFL schemas carry no maxLength"
+        }
+      },
+      "soul": {
+        "prompt_max_chars": 2500,
+        "house_ceiling": true,
+        "negative": "unknown",
+        "limit_source": {
+          "url": "",
+          "read": "2026-10-29",
+          "confidence": "unknown",
+          "note": "Higgsfield only"
+        }
+      },
+      "cinematic_studio": {
+        "prompt_max_chars": 2500,
+        "house_ceiling": true,
+        "negative": "unknown",
+        "limit_source": {
+          "url": "",
+          "read": "2026-10-29",
+          "confidence": "unknown",
+          "note": "Higgsfield only"
+        }
+      },
+      "nano_banana": {
+        "prompt_max_chars": 2500,
+        "house_ceiling": true,
+        "negative": "unknown",
+        "limit_source": {
+          "url": "",
+          "read": "2026-10-29",
+          "confidence": "unknown",
+          "note": "an unlisted Nano Banana variant"
+        }
+      },
+      "gpt_image": {
+        "prompt_max_chars": 32000,
+        "negative": "none",
+        "warn_nonascii_over": 11000,
+        "limit_source": {
+          "url": "https://pypi.org/project/openai/",
+          "read": "2026-10-29",
+          "confidence": "confirmed",
+          "note": "as gpt_image_2"
+        }
+      }
+    },
+    "gpt_image_2_6": {
+      "prompt_max_chars": 32000,
+      "negative": "none",
+      "warn_nonascii_over": 11000,
+      "limit_source": {
+        "note": "[INFERENCE] carried from gpt_image_2 (same OpenAI image family, read 2026-10-29); models_explore get gpt_image_2_6 (2026-11-05) states no prompt cap",
+        "read": "2026-11-05",
+        "confidence": "inferred"
+      }
+    }
+  },
+  "genjutsu": {
+    "_about": "Higgsfield Genjutsu: motion transfer (copy a driving video's motion, gestures, timing and camera path onto the subjects of reference images) and object swap (replace an object, product, garment or character in a source video from reference images). On the approved roster since 2026-11-03 (the author: \"Include Genjutsu\"), through its own lane: prompt_lint.py `kind: genjutsu`, gate.py `approve genjutsu:<SHOT>`, `gate.py preflight <SHOT> --kind genjutsu`.",
+    "_source": "[PRIMARY · Higgsfield models_explore list/get · 2026-11-03] ids, names, roles, resolutions; [VENDOR · generate_video tool description · 2026-11-03] images with role `image` and exactly one source/driving video with role `video`; `use_free_gens` (backend validates eligibility; a rejected free request is reported, never replaced with a charge)",
+    "models": {
+      "hf_mult_motion_control": {
+        "name": "Genjutsu",
+        "tier": "full",
+        "mode": "motion",
+        "underlying": null,
+        "resolutions": [
+          "480p",
+          "720p",
+          "1080p"
+        ],
+        "min_s": 4,
+        "max_s": 30,
+        "free_gens_stated": 1,
+        "lite": "hf_mult_motion_control_flash"
+      },
+      "hf_mult_motion_control_flash": {
+        "name": "Genjutsu Lite",
+        "tier": "lite",
+        "mode": "motion",
+        "underlying": "Wan 3.0",
+        "resolutions": [
+          "480p",
+          "720p",
+          "1080p"
+        ],
+        "min_s": 4,
+        "max_s": 15,
+        "free_gens_stated": 10
+      },
+      "hf_mult_replace_object": {
+        "name": "Genjutsu",
+        "tier": "full",
+        "mode": "swap",
+        "underlying": null,
+        "resolutions": [
+          "480p",
+          "720p",
+          "1080p"
+        ],
+        "min_s": 4,
+        "max_s": 30,
+        "free_gens_stated": 1,
+        "lite": "hf_mult_replace_object_flash"
+      },
+      "hf_mult_replace_object_flash": {
+        "name": "Genjutsu Lite",
+        "tier": "lite",
+        "mode": "swap",
+        "underlying": "Kling 4.0",
+        "resolutions": [
+          "720p",
+          "1080p"
+        ],
+        "min_s": 4,
+        "max_s": 30,
+        "free_gens_stated": 10
+      }
+    },
+    "roles": [
+      "image_references",
+      "video_references"
+    ],
+    "params": [
+      "resolution"
+    ],
+    "_params_note": "models_explore lists `resolution` as the ONLY parameter and no aspect ratios, durations or modes: the output follows the source video. The gate refuses any other generation param on a Genjutsu call. Whether it reads a `prompt` is not documented: a spec without a [PROMPT] block sends none.",
+    "_durations": "4–30 s source [VENDOR · higgsfield.ai Genjutsu page, read 2026-10-23]; Lite motion transfer up to 15 s [PRIMARY · models_explore 2026-11-03, \"Wan 3.0, up to 15 seconds\"]. Lite object swap states no limit: the page's 30 s is assumed.",
+    "free_gens": "[stated · 2026-11-03] Lite has 10 free generations, full has 1. These are the owner's counts on that date, not a live balance: whether they are per model or shared between motion and swap was not stated, and nothing here reads the remaining number. Plan Lite first while its free generations last; send `use_free_gens: true` only when the spec says `free_gens: prefer`.",
+    "_free_gens_mcp": "⚠️ free_and_unlimited.mcp_caveat (pricing page, 2026-08-29) says free generations are NOT accessible on MCP. The generate_video tool now documents `use_free_gens` with eligibility checked by the backend (2026-11-03). Unverified for Genjutsu on this account: the first free call is the measurement. A rejected free request goes back to the owner; it is never resent on credits without an OK.",
+    "prices": [
+      {
+        "read": "2026-10-23",
+        "source": "[VENDOR · higgsfield.ai Genjutsu page]",
+        "figure": "40 / 104 / 144 cr per 15 s at 480p / 720p / 1080p (motion transfer)"
+      },
+      {
+        "read": "2026-11-03",
+        "source": "[stated · owner, relaying a finance client's session]",
+        "figure": "about 100 cr per 5 s shot, against 16 cr for the same shot on Kling 4.0"
+      }
+    ],
+    "_prices_note": "The two readings disagree (the page works out near 48 cr per 5 s at 1080p) and neither says which tier. No per-second rate predicts a Genjutsu call here, so rate_card.py does not price it: probe the exact call with get_cost inside the job (spends nothing) and write the figure it returned."
+  }
+}

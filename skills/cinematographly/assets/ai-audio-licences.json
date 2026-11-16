@@ -1,0 +1,34 @@
+{
+  "_what": "Audio sources whose licence blocks a paid ad, read by mix_qa.py licences. A rule matches the manifest row's tool (case-insensitive regex) and blocks when its condition holds. A row that matches no rule still needs a licence that covers paid advertising; this file lists only the known blocks.",
+  "_read": "2026-10-26, from lab record lab-00012 (not shipped) section 3. Licences change: re-read the source before relying on a row older than six months.",
+  "eu_regions": ["EU", "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE"],
+  "rules": [
+    {
+      "tool": "mmaudio",
+      "block": "always",
+      "why": "the model weights are CC-BY-NC 4.0: non-commercial, so not for client work",
+      "source": "[PRIMARY · https://github.com/hkchengrex/MMAudio · read 2026-10-26]"
+    },
+    {
+      "tool": "hunyuan.*foley|hunyuanvideo-foley",
+      "block": "region",
+      "regions": ["@eu", "UK", "GB", "KR"],
+      "why": "its licence does not apply in the European Union, the United Kingdom and South Korea",
+      "source": "[PRIMARY · HunyuanVideo-Foley licence, via lab-00012 · read 2026-10-26]"
+    },
+    {
+      "tool": "elevenlabs|eleven labs",
+      "block": "plan",
+      "plans": ["free"],
+      "why": "commercial use is on paid plans only (the free tier also needs attribution)",
+      "source": "[PRIMARY · ElevenLabs terms, via lab-00012 · read 2026-10-26]"
+    },
+    {
+      "tool": "elevenlabs|eleven labs",
+      "block": "version",
+      "version_re": "beta|alpha|preview",
+      "why": "output from a Beta feature may not be used commercially",
+      "source": "[PRIMARY · ElevenLabs terms, via lab-00012 · read 2026-10-26]"
+    }
+  ]
+}

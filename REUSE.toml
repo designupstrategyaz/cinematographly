@@ -1,0 +1,9 @@
+version = 1
+SPDX-PackageName = "cinematographly"
+SPDX-PackageSupplier = "Design UpStrategy AZ LLC"
+
+[[annotations]]
+path = "**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Design UpStrategy AZ LLC"
+SPDX-License-Identifier = "LicenseRef-Cinematographly-Studio"

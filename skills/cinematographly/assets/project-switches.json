@@ -1,0 +1,306 @@
+{
+  "_note": "Project switches (v2.48.0; v2.49.0 adds frame-led, guide-audio, floor-1080 and dwg-working; 2026-11-03: \"I think such choices are project based?\" then \"yes\"). A house rule stays the default for every job. A job turns ONE named rule off by writing the switch in its 00-brief/CHECKPOINT.md `Switches:` line with a reason (`<id> — <reason>; <id> — <reason>`, or `none`). gate.py open validates the line against this file; scripts/switches.py reads it; every script that enforces a lifted rule prints the rule as lifted, with the reason, instead of refusing. A switch lifts only what its `lifts` says. Anything in `locked` is never a switch.",
+  "switches": {
+    "music-led": {
+      "lifts": "Music to picture: 'fit the track to the cut, never the cut to the track'. The song is fixed and is the deliverable; the picture is cut to it.",
+      "allows": "cutting picture to the song's beats and sections; the song's own sections setting the camera's energy; a move, freeze or burst cued to a sound in the song (the burst still counts against the ramp cap).",
+      "still_holds": "a genre-to-camera mapping (cinematography-craft.md §3.9) stays out; never picking music autonomously (the song is the client's).",
+      "rule_refs": [
+        "references/editing-and-audio.md § Music to picture",
+        "references/move-catalogue.md Appendix P, P12",
+        "references/editing-and-audio.md § The ramp"
+      ],
+      "rows": [
+        "HR-10",
+        "HR-28",
+        "HR-29",
+        "HR-30"
+      ],
+      "scripts": [
+        "motion_qa.py"
+      ]
+    },
+    "speed-conform": {
+      "lifts": "The ramp rules (titles-and-motion C4: the cap and `reveal=`) for two declared cases: a whole-clip constant conform on the shot (a real high-frame-rate shot played slower across the whole clip, or a lip-sync take shot off-speed and conformed), and a shallow ease inside a planned whip (100 % down to no less than 85 % and back).",
+      "allows": "`conform=<speed>%` on a shot (or `conform=<src fps>/<timeline fps>`), and `ease=<min speed>%` (85 or more) on a shot that carries `join: whip`; neither counts as a ramp or needs `reveal=`.",
+      "still_holds": "the frame-repeat floor (timeline fps / source fps); any other speed change inside a clip is still a ramp; a burst that hides a mask join stays out with the mask wipe (locked: no roto).",
+      "rule_refs": [
+        "references/editing-and-audio.md § The ramp",
+        "references/move-catalogue.md Appendix P, P15"
+      ],
+      "rows": [
+        "HR-12",
+        "HR-16",
+        "HR-31"
+      ],
+      "scripts": [
+        "motion_qa.py"
+      ]
+    },
+    "upload-master": {
+      "lifts": "Delivering at the format's resolution and no higher (realism-qa V15, the UGC lane) for one extra upload copy: a master of the same shape at a larger size (e.g. 2160p from a 1080 delivery).",
+      "allows": "export_qc.py --upload-master on that copy: the same shape as the preset, a larger size, every other check unchanged.",
+      "still_holds": "the delivered file itself still matches its preset exactly.",
+      "rule_refs": [
+        "references/realism-qa.md V15",
+        "references/delivery-format.md §4"
+      ],
+      "rows": [
+        "HR-04",
+        "HR-32"
+      ],
+      "scripts": [
+        "export_qc.py"
+      ]
+    },
+    "finish-texture": {
+      "lifts": "grade-finish C2: ads get no texture node, no bloom, no grain and no vignette.",
+      "allows": "a small bloom, optional grain and a light vignette in the ads lane's grade plan.",
+      "still_holds": "skin protection; look strength; look_qa export.",
+      "when": "A look that already reads as film (lifestyle, beauty, nostalgic, period, music-video): a small bloom, halation only on an explicitly filmic brief; grain to unify mixed sources or dither banding; the motivated vignette window where the edges compete with the subject.",
+      "not_when": "Clean tech, SaaS, fintech, explainer or high-key looks; product-clarity shots, packshots, UI and text-heavy frames; clipped highlights; heavy grain on a hero product; grain the brief needs seen on Reels or TikTok.",
+      "where": "Bloom, then halation, then grain on the clip's texture node in the 9:16 timeline (people and b-roll; product, anatomy and clean shots stay clean), never the Timeline graph; the window static on a clip node; the lens vignette centred on the safe box, not the frame.",
+      "how_much": "No portable slider numbers. One small bloom; grain from C2's 3–6 %, one setting on every textured shot, out if the round trip strips it; vignette by eye, no ring, the subject's level healthy.",
+      "guide": "references/editing-and-audio.md § Finishing looks (bloom, glow and halation; film grain; vignette)",
+      "rule_refs": [
+        "references/editing-and-audio.md § The grade (the template and step 3)",
+        "references/realism-qa.md §4"
+      ],
+      "rows": [
+        "HR-09"
+      ],
+      "scripts": [
+        "grade_luts.py"
+      ]
+    },
+    "light-leak": {
+      "lifts": "The ban on flares, glows and leaks in ads and launches (product-video.md §2.5).",
+      "allows": "one light-leak hit on one cut, screen-blended and peaking on the transition, inside the accent budget (titles-and-motion C5).",
+      "still_holds": "never as a grade, never on every cut; the C5 budget.",
+      "when": "Motivated by film or a real light source: a roll's head or tail, a Super 8 or nostalgic register, memory or flashback, a music-video flash that says something.",
+      "not_when": "A generic pack transition or a cover for a weak cut; unmotivated stock on digital footage; a TikTok ad meant to look native; saturated leaks over faces.",
+      "where": "One hit on one cut the brief already motivates, peaking on the cut; an Edit-page transition or a Screen overlay, never a grade node; captions, titles, the product and the disclosure stay clear of it.",
+      "how_much": "No reliable count or opacity (the course tries 50 down to 20 on Screen); at most 3 flashes a second over a quarter of the screen (Ofcom, WCAG 2.3.1); desaturate before it reaches red.",
+      "guide": "references/editing-and-audio.md § Finishing looks (light leaks)",
+      "rule_refs": [
+        "references/product-video.md §2.5",
+        "references/editing-and-audio.md § Transitions, the budget"
+      ],
+      "rows": [
+        "HR-14"
+      ],
+      "scripts": [
+        "motion_qa.py"
+      ]
+    },
+    "blur-titles": {
+      "lifts": "The ads lane's 'opacity or rise only, no blur' (typography-and-captions.md §6c item 3; title_card.py lint 'blur in ads').",
+      "allows": "a brand line, a closing lockup or a small mark (never the hook card) entering with a blur that clears to sharp while it fades up and rises, mirrored out.",
+      "still_holds": "native Resolve titles (titles-and-motion C7); the lane's durations and curves.",
+      "when": "A calm, premium single line: a brand line, a logo lockup or a closing statement, once per film; a narrative or music-video title card.",
+      "not_when": "The hook card; prices, offers, legal lines, disclosures, CTAs or captions; busy or moving backgrounds; stacked with stagger, wipe or glow.",
+      "where": "A hero-line or lockup kind used as a brand line or closing lockup, never the hook; built native (fusion_titles.py blur-resolve, or Text+ Softness); sharp and still inside the safe box for its reading time.",
+      "how_much": "No reliable video number: web-UI sources put the reveal at about 0.5–0.8 s; the blur clears inside the lane's entrance, and the reading floor counts from sharp.",
+      "guide": "references/typography-and-captions.md §6c, the blur-in block after item 3 (decision rule: references/editing-and-audio.md § Finishing looks)",
+      "rule_refs": [
+        "references/typography-and-captions.md §6c item 3",
+        "assets/title-lanes.json"
+      ],
+      "rows": [
+        "HR-21"
+      ],
+      "scripts": [
+        "title_card.py"
+      ]
+    },
+    "blurred-fill": {
+      "lifts": "Never an image over a blurred, stretched copy of itself (typography-and-captions.md §6c item 10).",
+      "allows": "a too-tight shot filling a vertical frame over a blurred, enlarged copy of the same clip, for a shot on screen about two seconds.",
+      "still_holds": "swapping the clip is still the first answer.",
+      "when": "The last resort for one too-tight vertical shot, after another shot, a reframe or Smart Reframe, a split screen and a designed or brand-colour plate, where a crop would destroy information.",
+      "not_when": "A paid 9:16 placement where a native version is possible; a single centred subject; a face or product that ghosts in the fill; a timeline-wide default.",
+      "where": "One shot, on screen about two seconds; Resolve FX Blanking Fill on the clip; on 9:16 the 16:9 band is y 656–1264, so type sits on the band or above it, never on the fill.",
+      "how_much": "Blurred until no shape reads, darkened slightly; no source gives a hold time, and about two seconds is this plugin's own limit.",
+      "guide": "references/typography-and-captions.md §6c, the blurred-fill block after item 10 (decision rule: references/editing-and-audio.md § Finishing looks)",
+      "rule_refs": [
+        "references/typography-and-captions.md §6c item 10"
+      ],
+      "rows": [
+        "HR-03"
+      ],
+      "scripts": []
+    },
+    "caption-display-face": {
+      "lifts": "'A display face is for a title, never for a caption run' (typography-and-captions.md §2).",
+      "allows": "the client's own display face for captions; a regular weight is flagged as a contrast risk rather than swapped.",
+      "still_holds": "title_qa's contrast check and the phone proof.",
+      "rule_refs": [
+        "references/typography-and-captions.md §2"
+      ],
+      "rows": [
+        "HR-18"
+      ],
+      "scripts": []
+    },
+    "caption-shadow-first": {
+      "lifts": "Caption contrast in the order plate first, shadow second (typography-and-captions.md §4).",
+      "allows": "an enlarged, softened drop shadow first, and a faint dark gradient behind the type only where it still sinks.",
+      "still_holds": "the contrast gate measures the result; in the ads lane the gradient is a vignette, so it also needs finish-texture.",
+      "rule_refs": [
+        "references/typography-and-captions.md §4"
+      ],
+      "rows": [
+        "HR-19"
+      ],
+      "scripts": []
+    },
+    "lens-smear": {
+      "lifts": "P11 (the foreground wipe, motion-craft.md §7b) for one in-camera case: a smear passed across the lens on a real shoot, used as a join outside the ads lane.",
+      "allows": "that join, cut inside the smear.",
+      "still_holds": "no mask drawn to follow anything (no roto); not in the ads lane.",
+      "rule_refs": [
+        "references/motion-craft.md §7b",
+        "references/move-catalogue.md Appendix P, P11"
+      ],
+      "rows": [
+        "HR-27"
+      ],
+      "scripts": []
+    },
+    "step-lower-thirds": {
+      "lifts": "The deferred explainer step chips (modes/editorial-explainer.md, waiting on Q2) for one form: a lower third on the shot each step or tip names.",
+      "allows": "a native Text+ lower third per step, with no leader line.",
+      "still_holds": "leader lines wait on Q2; card words that did not read stay unread.",
+      "rule_refs": [
+        "modes/editorial-explainer.md",
+        "references/typography-and-captions.md §6c"
+      ],
+      "rows": [
+        "HR-22"
+      ],
+      "scripts": []
+    },
+    "frame-led": {
+      "lifts": "The 2.49 default that a Seedance 2.5 / Cinema Studio clip is written as `form: scene` from approved reference sheets (prompting-craft.md §12).",
+      "allows": "the pre-2.49 route for this job: every clip is i2v from an approved start frame (frame:<SHOT>), clip prompts carry motion only, and CLIP_FORBIDDEN applies.",
+      "still_holds": "every other gate: sheets approved, the voice gate, the contact sheet, the quality floor.",
+      "when": "An exact composition the client approved as a still (a packshot, a logo end card, a brand composite), a product whose label must match a photograph, a series whose frames are already approved.",
+      "not_when": "To save credits, or because writing the long template feels slow.",
+      "where": "The whole job (prompt_lint.py refuses `form: scene` while it is on; gate.py requires frame:<SHOT> on every clip).",
+      "how_much": "—",
+      "guide": "references/prompting-craft.md §12 · §1",
+      "rule_refs": [
+        "references/prompting-craft.md §12",
+        "references/ai-generation.md, the reference route"
+      ],
+      "rows": [
+        "HFF-15 (festival study)"
+      ],
+      "scripts": [
+        "prompt_lint.py",
+        "gate.py"
+      ]
+    },
+    "guide-audio": {
+      "lifts": "The 2.49 default that a clip's native diegetic sound is kept as production sound (editing-and-audio.md §7d).",
+      "allows": "the pre-2.49 rule for this job: native sound is a timing guide only; `generate_audio: true` needs `audio` approved; mix_qa.py refuses a non-dialogue take's own sound in the export without a `native` approval.",
+      "still_holds": "the voice gate for speech; one ambience bed per location (§7e).",
+      "when": "A job whose sound is designed from licensed libraries end to end (a sound-designed spot), a client who asked for clean stems, a format where the model's sound is known to be poor.",
+      "not_when": "As a habit: the festival winners kept their native sound and the judges named sound in two of three awards.",
+      "where": "The whole job (gate.py, mix_qa.py).",
+      "how_much": "—",
+      "guide": "references/editing-and-audio.md §7d",
+      "rule_refs": [
+        "references/editing-and-audio.md §7d",
+        "references/ai-generation.md, sound"
+      ],
+      "rows": [
+        "HFF-11 (festival study)"
+      ],
+      "scripts": [
+        "gate.py",
+        "mix_qa.py"
+      ]
+    },
+    "floor-1080": {
+      "lifts": "The 2.49 video floor of 720p (one upscale on the final, after the cut).",
+      "allows": "nothing looser — it RESTORES the 1080p video floor for this job: prompt_lint.py and gate.py refuse a video take under 1080p.",
+      "still_holds": "everything.",
+      "when": "A client who wants native 1080p or better, a hero film, close faces and wide plates throughout, a delivery above 1080p where an upscale is not acceptable.",
+      "not_when": "—",
+      "where": "The whole job.",
+      "how_much": "—",
+      "guide": "references/ai-generation.md, the quality floor",
+      "rule_refs": [
+        "references/ai-generation.md, the quality floor"
+      ],
+      "rows": [
+        "house decision 2026-11-05 (720p finals + upscale)"
+      ],
+      "scripts": [
+        "prompt_lint.py",
+        "gate.py"
+      ]
+    },
+    "dwg-working": {
+      "lifts": "editing-and-audio.md Colour management item 1's Rec.709 (Scene) working route, for REAL log footage only.",
+      "allows": "grading real log footage in DaVinci Wide Gamut as a pair of transforms: each camera's input transform first on its own colour group's pre-clip graph (camera log and gamut to DaVinci Wide Gamut / DaVinci Intermediate, no tone or gamut mapping), then the match, look and texture, then an output transform to Rec.709 Gamma 2.4 last with tone mapping on.",
+      "still_holds": "generated clips stay on item 1's Rec.709 route; a look LUT built on display-referred pixels goes AFTER the output transform (or the look is built by hand); the export gate (look_qa.py export); grade-finish C1–C4.",
+      "when": "A job with real log camera footage (Canon Log, S-Log, LogC, V-Log …) graded in Resolve.",
+      "not_when": "Generated footage, or a hybrid cut mixing generated clips into the wide space (untested).",
+      "where": "The grade: the per-camera colour group's pre-clip graph and the timeline's last node.",
+      "how_much": "No template until a real log job needs one.",
+      "guide": "references/editing-and-audio.md, Colour management",
+      "rule_refs": [
+        "references/editing-and-audio.md, Colour management item 1",
+        "HR-08"
+      ],
+      "rows": [
+        "HR-33"
+      ],
+      "scripts": []
+    }
+  },
+  "locked": [
+    {
+      "name": "advanced VFX",
+      "match": "advanced[- ]?vfx|mask[- ]?wipe|luma[- ]?key|key(ing)?[- ]join|compositing",
+      "rule": "Owner standing rule: no advanced VFX — mask-wipe and luma-key joins and heavy compositing stay out. Since 2.49 (2026-11-05) roto IS allowed for one job: masked-region repair with a tracked box or SAM 2 (scripts/region_repair.py), blended back as a Fusion comp in Resolve built by computer control, never through the API (2026-11-05; the tool's own composite is a preview only), so only the masked region changes."
+    },
+    {
+      "name": "AI images as references",
+      "match": "ai[- ]?ref|ai[- ]image|generated[- ]ref",
+      "rule": "Owner standing rule: never use AI images as references."
+    },
+    {
+      "name": "spend without approval",
+      "match": "spend|credit|budget|paid|no[- ]?gate",
+      "rule": "Owner standing rule: spend nothing without approval; paid generation goes through gate.py."
+    },
+    {
+      "name": "non-native titles",
+      "match": "burn(ed)?[- ]?title|drawtext|non[- ]?native|ffmpeg[- ]title",
+      "rule": "Owner standing rule: always native Resolve titles (titles-and-motion C7)."
+    },
+    {
+      "name": "a language other than English",
+      "match": "language|non[- ]?english",
+      "rule": "Owner standing rule: always English."
+    },
+    {
+      "name": "skipping the contact sheet",
+      "match": "contact[- ]?sheet|no[- ]?sheet|skip[- ]?review",
+      "rule": "Owner standing rule: a contact sheet before any video draft."
+    },
+    {
+      "name": "picking music autonomously",
+      "match": "pick[- ]?music|auto[- ]?music|choose[- ]?music",
+      "rule": "Owner standing rule: never pick music autonomously."
+    },
+    {
+      "name": "Higgsfield motion_control",
+      "match": "motion[-_ ]?control",
+      "rule": "M3: Higgsfield motion_control stays denied."
+    }
+  ]
+}

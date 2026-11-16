@@ -1,0 +1,68 @@
+# SPDX-License-Identifier: LicenseRef-Cinematographly-Studio
+name: CI
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  gate-python-3-9:
+    name: Spend gate on Python 3.9 (the macOS system Python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.9"
+      - name: Gate and first-run self-tests (standard library only)
+        working-directory: skills/cinematographly/scripts
+        run: |
+          python gate.py --selftest
+          python test_gate.py
+          for f in cine_home.py new_job.py studio_setup.py doctor.py next_step.py cut_plan.py timeline_export.py; do
+            python "$f" --selftest
+          done
+  suite-python-3-12:
+    name: Full test suite on Python 3.12
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Tools
+        run: |
+          sudo apt-get update -q && sudo apt-get install -y -q ffmpeg libxml2-utils
+          python -m pip install -r requirements.txt pyyaml
+      - name: run_tests.py
+        env:
+          PYTHONHASHSEED: "1"
+        run: python skills/cinematographly/scripts/run_tests.py
+  validate:
+    name: claude plugin validate --strict
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+      - run: npm install -g @anthropic-ai/claude-code@2.1.301
+      - run: claude plugin validate --strict .
+  reuse:
+    name: Licence annotations (REUSE)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - run: python -m pip install reuse==6.3.0
+      - run: reuse lint

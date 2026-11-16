@@ -1,0 +1,36 @@
+{
+  "client": "acme",
+  "source": "⛔ SAMPLE for the invented client `acme`. The numbers are the template's; they were not measured on any account. Never quote a real client from this file: copy clients/costs._TEMPLATE.json into your own client folder and follow scripts/refresh_costs.md.",
+  "plan": {
+    "monthly_credits": 3000,
+    "videos_per_month_min": 3,
+    "videos_per_month_max": 4,
+    "credit_price_usd": 0,
+    "_credit_price_usd": "0 = unset, and the estimator prints credits only. Derive yours from your invoice: monthly price ÷ monthly credits."
+  },
+  "default_preset": "quality",
+  "_default_preset": "Both quoting tools price QUALITY unless you pass --economy (the quality floor, SKILL.md §4 item 11); economy is a labelled comparison only (v2.62.0).",
+  "presets": {
+    "economy": {
+      "start_frame": 2,
+      "broll": 10,
+      "voiceover_line": 0.6,
+      "retry": 1.15,
+      "note": "Copied from clients/costs._TEMPLATE.json so the sample runs. ⛔ DERIVE your own, do not copy: `python3 scripts/rate_card.py lookup --model <m> --res <r> --seconds <n>`.",
+      "dialogue_clip_per_second": 2.5,
+      "kling_dialogue": 10.0
+    },
+    "quality": {
+      "start_frame": 2,
+      "broll": 36,
+      "voiceover_line": 0.6,
+      "retry": 1.3,
+      "note": "Copied from clients/costs._TEMPLATE.json so the sample runs. ⛔ DERIVE your own, do not copy.",
+      "dialogue_clip_per_second": 2.5,
+      "kling_dialogue": 45.0
+    }
+  },
+  "last_verified": "",
+  "_last_verified": "Empty on purpose: nobody measured these numbers, so the estimator says the estimate is ASSUMED.",
+  "_provenance": "SAMPLE. Not measured. The preset numbers are the template's."
+}

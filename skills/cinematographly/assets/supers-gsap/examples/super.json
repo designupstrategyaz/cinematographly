@@ -1,0 +1,13 @@
+{
+  "kind": "super",
+  "lines": ["Meet the team", "Bucharest studio"],
+  "voiced": true,
+  "durationS": 3.5,
+  "position": "lower-left",
+  "from": "left",
+  "font": { "family": "Helvetica", "weight": 700, "sizePctOfHeight": 3.6 },
+  "color": "#FFFFFF",
+  "plate": { "color": "#000000", "alpha": 0.6 },
+  "curves": { "enter": [0.16, 1, 0.3, 1], "exit": [0.4, 0, 1, 1] },
+  "ms": { "enter": 600, "exit": 300, "stagger": 25 }
+}

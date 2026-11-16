@@ -1,0 +1,541 @@
+{
+  "_about": "The aerial, FPV, insect-scale and planet-scale move table (references/aerial-and-fpv.md). The owner chose all four packages of the aerial and FPV proposal of 2026-10-26 [studio history]. Every range is a practitioner default or a measured animal figure, not physics: blocking.py warns outside a range and refuses only a cap (max_turns). prompt_lint.py (through aerial_qa.lint_aerial) reads the same table for the `aerial:` declaration on a clip prompt. The `dji` block maps DJI's in-app presets (QuickShots, MasterShots, FocusTrack, Hyperlapse, Waypoint Flight, Cruise Control, Easy ACRO) onto these moves for the pilot sheet (flyover.py pilot).",
+  "_units": "metres, metres per second, seconds, degrees. Practitioner figures were given in mph and ft: 1 mph = 0.447 m/s, 1 ft = 0.305 m, rounded to one decimal.",
+  "_sources": {
+    "droneu": "Drone U, '14 Types of Shots in Drone Cinematography' [PRACTITIONER, read 2026-10-26]",
+    "premiumbeat": "PremiumBeat, '8 flight tips for drone footage' [PRACTITIONER]",
+    "hejazi2022": "Hejazi, Kuchler, Bagheri & Bodenschatz 2022, 'Flight of a honeybee in turbulent wind', arXiv 2209.05977 [PRIMARY]",
+    "iams2012": "Iams 2012, 'Free flight of the mosquito Aedes aegypti', arXiv 1205.5260 [PRIMARY]",
+    "eames1977": "Powers of Ten (Charles and Ray Eames, 1977) [FILM]",
+    "esa_iss": "ESA, 'Flying over Earth' (ISS: 400 km, 28,800 km/h, 90-minute orbit) [PRIMARY]",
+    "segmind_hf": "Segmind on the Higgsfield Earth Zoom Out preset (3 or 5 s; distortion when the ground-to-orbit step is rushed) [VENDOR]",
+    "dji_mini4pro": "DJI Mini 4 Pro User Manual v1.0, 2023.09 (FocusTrack p27-31, MasterShots p34, QuickShots p35-36, Hyperlapse p37, Waypoint Flight p40, Cruise Control p45, specifications) [PRIMARY]",
+    "dji_mini5pro": "DJI Mini 5 Pro User Manual v1.0, 2025.09 (4.1-4.5) [PRIMARY]",
+    "dji_mavic4pro": "DJI Mavic 4 Pro User Manual v1.2, 2025.09 (4.1 ActiveTrack ranges; gimbal specifications) [PRIMARY]",
+    "dji_neo": "DJI Neo User Manual v1.2, 2024.11 (Switching Modes: Follow, Dronie, Circle, Rocket, Spotlight, DirectionTrack, Helix, Boomerang) [PRIMARY]",
+    "dji_avata2": "DJI Avata 2 User Manual v1.0 (Easy ACRO; specifications) [PRIMARY]",
+    "mastershots_list": "studiosport.fr Air 2S MasterShots guide (ten manoeuvres) and heliguy 'How to use MasterShots on DJI Mini 4 Pro' (Proximity moves); DJI's manuals do not list the sequence [SECONDARY]"
+  },
+  "functions": {
+    "establish": "where we are — the world before the scene",
+    "scale": "how big the place or the thing is",
+    "isolation": "a figure small and alone in the landscape",
+    "vulnerability": "someone tracked or watched from above",
+    "geography": "how the place is laid out (a hole, a lot, a route); the plan view is information",
+    "pattern": "a shape only visible from above",
+    "reveal": "the move uncovers what the scene is about",
+    "ending": "the pull away that closes the film",
+    "judgment": "the god's-eye view that weighs what happened",
+    "breathing": "a cut away from an intimate scene that gives the viewer room",
+    "journey": "the route itself carries the story (a one-take, a flight, a crossing)"
+  },
+  "nadir_functions": ["pattern", "geography", "judgment", "vulnerability", "isolation"],
+  "generic_subjects": [
+    "landscape",
+    "the landscape",
+    "city",
+    "the city",
+    "scenery",
+    "the view",
+    "view",
+    "location",
+    "the location",
+    "establishing",
+    "b-roll",
+    "broll",
+    "aerial",
+    "drone shot",
+    "nature",
+    "skyline",
+    "the area",
+    "area",
+    "place",
+    "the place",
+    "background"
+  ],
+  "kinds": {
+    "drone": {
+      "rig": "drone",
+      "words": "from a drone, smooth and unhurried"
+    },
+    "fpv": {
+      "rig": "fpv",
+      "words": "on an FPV drone, banking into its turns"
+    },
+    "cinewhoop": {
+      "rig": "cinewhoop",
+      "words": "on a small ducted cinewhoop, gliding through the space a few feet above the floor"
+    },
+    "insect": {
+      "rig": "insect",
+      "words": "at an insect's scale, a hand-width above the ground, real time"
+    },
+    "planet": {
+      "rig": null,
+      "words": "a continuous move between ground and orbit"
+    }
+  },
+  "moves": {
+    "orbit": {
+      "kind": "drone",
+      "speed_mps": [1.3, 2.2],
+      "radius_m": [15, 46],
+      "max_turns": 1.5,
+      "blocking": "drone_orbit",
+      "for": ["scale", "reveal", "geography", "establish"],
+      "words": "a slow, controlled orbit around {subject}",
+      "source": "droneu: 3-5 mph, radius 50-150 ft, never more than 1.5 orbits in a delivered edit"
+    },
+    "helix": {
+      "kind": "drone",
+      "secs_per_turn": [8, 12],
+      "max_turns": 3,
+      "blocking": "helix",
+      "for": ["scale", "reveal"],
+      "words": "rising slowly in a spiral around {subject}, one turn every ten seconds",
+      "source": "droneu: one circle per 8-12 s; no more than three, two is usually plenty"
+    },
+    "flyover": {
+      "kind": "drone",
+      "speed_mps": [3.6, 6.7],
+      "blocking": "flyover",
+      "for": ["establish", "reveal", "geography", "journey"],
+      "words": "flying low and level toward {subject}, climbing only at the last moment",
+      "source": "droneu: 8-15 mph approach; 'climbing too early removes the tension'"
+    },
+    "fly_through": {
+      "kind": "drone",
+      "speed_mps": [0.9, 1.8],
+      "blocking": "gap_fly_through",
+      "for": ["reveal", "journey"],
+      "words": "threading slowly through the gap in {subject}",
+      "source": "droneu: 2-4 mph through a gap"
+    },
+    "tilt_down_reveal": {
+      "kind": "drone",
+      "speed_mps": [2.2, 4.5],
+      "blocking": "tilt_down_reveal",
+      "for": ["reveal", "scale"],
+      "words": "flying out over the edge as the camera tilts down to reveal {subject}",
+      "source": "droneu: 5-10 mph, gimbal tilting down as the drone crosses an edge"
+    },
+    "pull_back_reveal": {
+      "kind": "drone",
+      "speed_mps": [1.8, 3.6],
+      "blocking": "drone_reveal",
+      "for": ["ending", "isolation", "scale", "reveal"],
+      "words": "pulling back and rising away from {subject} until the place is the subject",
+      "source": "droneu: 4-8 mph straight, optional slow climb; endings, isolation, scale"
+    },
+    "top_down": {
+      "kind": "drone",
+      "altitude_m": [30, 122],
+      "nadir": true,
+      "blocking": "top_down",
+      "for": ["pattern", "geography", "judgment"],
+      "words": "looking straight down on {subject}, drifting slowly",
+      "source": "droneu: 100-400 ft, camera 90 degrees down"
+    },
+    "parallax_orbit": {
+      "kind": "drone",
+      "speed_mps": [1.3, 1.8],
+      "foreground_m": [3, 6],
+      "max_turns": 1.5,
+      "blocking": "parallax_orbit",
+      "for": ["reveal", "scale"],
+      "words": "arcing slowly round {subject} past a near foreground that slides across the frame",
+      "source": "droneu: 3-4 mph, foreground 10-20 ft from the drone"
+    },
+    "pedestal": {
+      "kind": "drone",
+      "speed_mps": [1.3, 2.7],
+      "blocking": "pedestal",
+      "for": ["scale", "reveal", "establish"],
+      "words": "rising straight up the face of {subject}, the camera level",
+      "source": "droneu: climb at 3-6 mph, held constant, camera level",
+      "speed_axis": "vertical"
+    },
+    "rocket": {
+      "kind": "drone",
+      "speed_mps": [1.3, 2.7],
+      "nadir": true,
+      "blocking": "rocket",
+      "for": ["pattern", "reveal", "scale"],
+      "words": "rising straight up over {subject}, looking straight down as the ground falls away",
+      "source": "dji_mini4pro p35: 'ascends with the camera pointing downward' (the Neo keeps the camera on the subject instead); climb rate as the pedestal (droneu); Cine mode caps the ascent at 3 m/s",
+      "speed_axis": "vertical"
+    },
+    "boomerang": {
+      "kind": "drone",
+      "clear_radius_m": 30,
+      "clear_above_m": 10,
+      "blocking": "boomerang",
+      "for": ["reveal", "scale"],
+      "words": "swinging round {subject} on a wide oval, rising as it swings away and sinking as it comes back",
+      "source": "dji_mini4pro p35: oval, ascending away from the start and descending back; the start is one end of the long axis, the far end is across the subject; clear 30 m radius and 10 m above"
+    },
+    "little_planet": {
+      "kind": "drone",
+      "effect": true,
+      "clear_behind_m": 40,
+      "clear_above_m": 50,
+      "for": ["establish", "scale"],
+      "words": "opening on a little-planet view of {subject} curled into a sphere, unrolling into the real view as the camera descends",
+      "source": "dji_mini4pro p36 (Asteroid): flies back and up, stitches a panorama, and the video opens on it before the descent; clear 40 m behind and 50 m above. A stitched effect, not a camera move: an opener only"
+    },
+    "hyperlapse": {
+      "kind": "drone",
+      "time_compressed": true,
+      "altitude_m": [50, 122],
+      "min_subject_m": 15,
+      "for": ["establish", "breathing", "journey"],
+      "words": "a slow drifting time-lapse over {subject}, clouds and traffic streaming while the camera glides",
+      "source": "dji_mini4pro p37: Free, Circle, Course Lock, Waypoint; recommended above 50 m with a static subject more than 15 m away; 25 photos make one second. The top of the range is the usual 120 m (400 ft) ceiling as the top-down move"
+    },
+    "side_follow": {
+      "kind": "drone",
+      "distance_m": [6, 18],
+      "blocking": "drone_side_follow",
+      "for": ["journey", "vulnerability"],
+      "words": "keeping pace alongside {subject} at a fixed distance",
+      "source": "droneu: 20-60 ft to the side; closer feels more urgent"
+    },
+    "push_in": {
+      "kind": "drone",
+      "speed_mps": [0.9, 1.8],
+      "blocking": "drone_push_in",
+      "for": ["establish", "reveal"],
+      "words": "pushing in slowly toward {subject}, stopping before it fills the frame",
+      "source": "droneu: 2-4 mph straight, constant, stop before the subject fills the frame"
+    },
+    "hover_pan": {
+      "kind": "drone",
+      "deg_per_s": [7.2, 12.0],
+      "blocking": "hover_pan",
+      "for": ["establish", "geography"],
+      "words": "hovering still while the camera pans slowly across {subject}",
+      "source": "droneu: 15-25 s per 180 degrees"
+    },
+    "hole_flyover": {
+      "kind": "drone",
+      "speed_mps": [3.6, 6.7],
+      "blocking": "hole_flyover",
+      "for": ["geography", "journey"],
+      "words": "lifting off the tee, climbing late along the strategy line over the hazards, descending to the green",
+      "source": "Drone U golf: off the tee, climbs as it travels, descends as it nears the hole — 'the hole from the ball's perspective'; speed as the fly-over approach"
+    },
+    "fpv_chase": {
+      "kind": "fpv",
+      "blocking": "fpv_chase",
+      "for": ["journey", "vulnerability"],
+      "words": "chasing {subject} as a second flyer, banking where it turns",
+      "source": "move-catalogue §33"
+    },
+    "fpv_dive": {
+      "kind": "fpv",
+      "blocking": "fpv_dive",
+      "for": ["reveal", "journey"],
+      "words": "diving from altitude into the chase",
+      "source": "blocking stage"
+    },
+    "cinewhoop_oner": {
+      "kind": "cinewhoop",
+      "speed_mps": [1.0, 5.0],
+      "blocking": "cinewhoop_oner",
+      "for": ["journey", "establish"],
+      "words": "one continuous flight through {subject}, scene after scene in story order",
+      "source": "Drone U 2022 (one take, scenes in order); speed range [assumed] — no source gives one"
+    },
+    "bee": {
+      "kind": "insect",
+      "speed_mps": [0.4, 1.2],
+      "turn_radius_m": [0.13, 0.22],
+      "blocking": "bee_path",
+      "for": ["journey", "scale", "reveal"],
+      "words": "a bee's flight: easing forward, stopping sharply into tight turns a hand-width wide",
+      "source": "hejazi2022: mean 0.71 m/s near the hive; 'accelerate slowly and decelerate rapidly'; turn radius 12.7-21.9 cm. The speed range around the mean is [assumed]"
+    },
+    "mosquito": {
+      "kind": "insect",
+      "speed_mps": [0.2, 0.6],
+      "turn_deg": [50, 200],
+      "blocking": "mosquito_path",
+      "for": ["journey", "vulnerability"],
+      "words": "a mosquito's flight: slipping sideways and backwards, the view rarely pointing where it travels",
+      "source": "iams2012: heading rarely matches travel; turns of 50-200 degrees; sideslip 0.3-1 g; speeds under 0.4 m/s in a small chamber (a limit of the set-up). The speed range is [assumed]",
+      "speed_relative": true
+    },
+    "earth_zoom": {
+      "kind": "planet",
+      "min_secs_per_stage": 3,
+      "max_stages": 3,
+      "max_decades_per_s": 1.0,
+      "for": ["scale", "establish", "journey"],
+      "words": "a continuous plunge from orbit through the cloud layer to {subject}",
+      "source": "segmind_hf: 3 or 5 s; distortion when the ground-to-orbit step is rushed; eames1977 for pace. max_decades_per_s [assumed]",
+      "higgsfield_preset": "1ac7759b-7df1-4c96-a97a-baf611f7d38e (denied by gate.py: reference only)"
+    },
+    "pull_back_planet": {
+      "kind": "planet",
+      "min_secs_per_stage": 3,
+      "max_stages": 3,
+      "max_decades_per_s": 1.0,
+      "for": ["ending", "scale", "isolation"],
+      "words": "pulling back from {subject} through the clouds until the whole Earth hangs in black",
+      "source": "Contact (1997): the pull-back, reversed from a fly-in because forward 'seemed false'; eames1977"
+    },
+    "orbital_drift": {
+      "kind": "planet",
+      "real_speed_kmps": 7.9,
+      "altitude_km": 400,
+      "for": ["scale", "journey", "breathing"],
+      "words": "drifting over the Earth at orbital height, the coastline sliding past below",
+      "source": "esa_iss: 400 km, 28,800 km/h, a 90-minute orbit"
+    },
+    "continent_traverse": {
+      "kind": "planet",
+      "for": ["journey", "geography"],
+      "words": "sweeping steadily across the continent from {from} to {to}, coastlines and mountain ranges sliding past below",
+      "source": "the ISS crosses a continent in minutes (esa_iss); a faster pass is a time-lapse and reads as one"
+    },
+    "fpv_flip": {
+      "kind": "fpv",
+      "max_per_film": 1,
+      "min_altitude_m": 1.5,
+      "for": ["journey"],
+      "words": "flipping end over end once mid-flight and carrying straight on",
+      "source": "dji_avata2 Easy ACRO: front flip or backflip; unavailable below 1.5 m. Once per film: a stunt is punctuation [house rule C4: warns]"
+    },
+    "fpv_roll": {
+      "kind": "fpv",
+      "max_per_film": 1,
+      "min_altitude_m": 1.5,
+      "for": ["journey"],
+      "words": "rolling once through a full barrel roll and levelling out",
+      "source": "dji_avata2 Easy ACRO: one roll left or right; unavailable below 1.5 m"
+    },
+    "fpv_drift_180": {
+      "kind": "fpv",
+      "max_per_film": 1,
+      "min_altitude_m": 1.5,
+      "for": ["journey", "reveal"],
+      "words": "sliding sideways through a half-turn to look back the way it came",
+      "source": "dji_avata2 Easy ACRO: 180-degree drift left or right"
+    }
+  },
+  "aliases": {
+    "dronie": "pull_back_reveal",
+    "circle": "orbit",
+    "poi": "orbit",
+    "point_of_interest": "orbit",
+    "asteroid": "little_planet",
+    "tiny_planet": "little_planet",
+    "activetrack": "side_follow",
+    "trace": "side_follow",
+    "parallel": "side_follow",
+    "flip": "fpv_flip",
+    "roll": "fpv_roll",
+    "drift": "fpv_drift_180",
+    "timelapse": "hyperlapse",
+    "time_lapse": "hyperlapse",
+    "reveal": "pull_back_reveal"
+  },
+  "dji": {
+    "_about": "What DJI's apps fly for you, from DJI's own manuals. The pilot sheet names the preset for each aerial shot, or Waypoint Flight when none fits. The app's auto-edited QuickShots and MasterShots videos never reach the cut: only the raw clips go into 03-raw. Prompts name the motion, never the preset (preset_words).",
+    "before_any_preset": {
+      "hover_min_m": 2,
+      "subject_max_m": 50,
+      "lux": [300, 10000],
+      "dont_use": [
+        "subject blocked or out of line of sight",
+        "subject more than 50 m away",
+        "subject the same colour or pattern as its surroundings",
+        "large plain areas such as snow or desert (Mini 5 Pro)",
+        "subject in the air",
+        "subject moving fast",
+        "darker than 300 lux or brighter than 10,000 lux",
+        "close to buildings or with weak GNSS"
+      ],
+      "source": "dji_mini4pro p36; dji_mini5pro 4.3"
+    },
+    "activetrack_m": {
+      "people": {
+        "distance": [4, 20],
+        "height": [0.5, 20]
+      },
+      "vehicles": {
+        "distance": [6, 100],
+        "height": [6, 100]
+      },
+      "subject_max_mps": 12,
+      "note": "Mini 4 Pro figures; the Mini 5 Pro allows people and vehicles 0.5-50 m high and vehicles 4-50 m away; the Mavic 4 Pro caps people at 20 m and vehicles at 100 m",
+      "source": "dji_mini4pro p29; dji_mini5pro 4.1; dji_mavic4pro 4.1"
+    },
+    "speeds_mps": {
+      "mini_4_pro": {
+        "cine": 12,
+        "normal": 12,
+        "sport": 16,
+        "cine_ascent": 3,
+        "normal_ascent": 5,
+        "poi_max": 12
+      },
+      "neo": {
+        "follow_max": 8
+      },
+      "avata_2": {
+        "normal": 8,
+        "sport": 16,
+        "manual": 27,
+        "manual_eu": 19
+      },
+      "source": "dji_mini4pro specifications and p27; dji_neo; dji_avata2 specifications"
+    },
+    "gimbal_tilt_deg": {
+      "mavic_4_pro": [-90, 60],
+      "source": "dji_mavic4pro specifications (controllable range): it can look up 60 degrees"
+    },
+    "waypoint": {
+      "per_point": ["altitude", "speed", "heading (Follow Course, POI, Manual or Custom)", "gimbal tilt", "zoom", "hover time"],
+      "curves": "the route curves between waypoints, so the aircraft can dip below the waypoint altitudes: check what is under the route",
+      "map_default_altitude_m": 50,
+      "repeatable": true,
+      "source": "dji_mini4pro p40-44"
+    },
+    "presets": {
+      "dronie": {
+        "app": "QuickShots > Dronie",
+        "move": "pull_back_reveal",
+        "set": "max distance",
+        "motion": "flies backward and ascends, camera locked on the subject",
+        "note": "the Neo flies back, then forward again, and records both",
+        "source": "dji_mini4pro p35; dji_neo"
+      },
+      "rocket": {
+        "app": "QuickShots > Rocket",
+        "move": "rocket",
+        "set": "max height",
+        "motion": "ascends with the camera pointing down",
+        "note": "the Neo keeps the camera on the subject and can rotate on the way up",
+        "source": "dji_mini4pro p35; dji_neo"
+      },
+      "circle": {
+        "app": "QuickShots > Circle",
+        "move": "orbit",
+        "set": "direction (the current distance is the radius)",
+        "motion": "circles the subject once",
+        "source": "dji_mini4pro p35; dji_neo"
+      },
+      "helix": {
+        "app": "QuickShots > Helix",
+        "move": "helix",
+        "set": "max radius, direction",
+        "motion": "flies back and up while circling once, the radius widening",
+        "note": "one turn only: a longer helix is flown by hand or with Cruise Control",
+        "source": "dji_mini4pro p35; dji_neo"
+      },
+      "boomerang": {
+        "app": "QuickShots > Boomerang",
+        "move": "boomerang",
+        "set": "direction (Neo: max distance)",
+        "motion": "an oval round the subject, highest at the far end",
+        "clearance": "30 m radius, 10 m above",
+        "source": "dji_mini4pro p35-36; dji_neo"
+      },
+      "asteroid": {
+        "app": "QuickShots > Asteroid",
+        "move": "little_planet",
+        "set": "none",
+        "motion": "back and up, stitches a panorama, opens on it and descends",
+        "clearance": "40 m behind, 50 m above",
+        "source": "dji_mini4pro p36"
+      },
+      "mastershots": {
+        "app": "MasterShots",
+        "move": null,
+        "set": "subject and flight range (width, length, height)",
+        "motion": "about ten classic moves in a row with the subject centred: zoom in/out, medium circle, close circle, dronie, far circle, tilt up and fly forward, rocket, camera down and circle, camera level and descend, camera down and descend",
+        "note": "a coverage pass, one battery, for raw: the app's edit is not used",
+        "source": "dji_mini4pro p34; mastershots_list"
+      },
+      "spotlight": {
+        "app": "FocusTrack > Spotlight",
+        "move": null,
+        "set": "subject",
+        "motion": "you fly; the camera stays locked on the subject",
+        "use_for": ["flyover", "push_in", "pedestal", "tilt_down_reveal"],
+        "source": "dji_mini4pro p27"
+      },
+      "poi": {
+        "app": "FocusTrack > Point of Interest",
+        "move": "orbit",
+        "set": "direction and speed",
+        "motion": "circles the subject at the current height and radius, up to 12 m/s",
+        "note": "the long or slow orbit QuickShots cannot do; stop it at 1.5 turns",
+        "source": "dji_mini4pro p27, p30"
+      },
+      "activetrack_trace": {
+        "app": "FocusTrack > ActiveTrack > Trace",
+        "move": "side_follow",
+        "set": "direction (one of 8), distance, height",
+        "motion": "follows from a set side relative to where the subject is heading",
+        "source": "dji_mini4pro p28, p31"
+      },
+      "activetrack_parallel": {
+        "app": "FocusTrack > ActiveTrack > Parallel",
+        "move": "side_follow",
+        "set": "distance, height",
+        "motion": "follows on a fixed compass bearing from the subject",
+        "source": "dji_mini4pro p28"
+      },
+      "hyperlapse": {
+        "app": "Hyperlapse > Free, Circle, Course Lock or Waypoint",
+        "move": "hyperlapse",
+        "set": "interval, video length, speed",
+        "motion": "a moving time-lapse",
+        "source": "dji_mini4pro p37-39"
+      },
+      "waypoint_flight": {
+        "app": "Waypoint Flight",
+        "move": null,
+        "set": "points (see waypoint)",
+        "motion": "a saved route, repeatable",
+        "use_for": ["hole_flyover", "flyover", "tilt_down_reveal", "pull_back_reveal", "push_in"],
+        "note": "fly every hole the same way, then re-fly the route in other light",
+        "source": "dji_mini4pro p40"
+      },
+      "cruise_control": {
+        "app": "Cruise Control (custom button)",
+        "move": null,
+        "set": "stick input",
+        "motion": "holds the current speed hands-off",
+        "use_for": ["flyover", "push_in", "pedestal", "helix"],
+        "source": "dji_mini4pro p45"
+      },
+      "easy_acro": {
+        "app": "Avata 2 > Easy ACRO (RC Motion 3)",
+        "move": null,
+        "set": "action (Slide, 180-degree Drift, Flip)",
+        "motion": "front flip, backflip, roll, 180-degree drift, slide",
+        "use_for": ["fpv_flip", "fpv_roll", "fpv_drift_180"],
+        "note": "switch it on before recording (it cannot be enabled while recording); not below 1.5 m, below 25 % battery or in Sport mode",
+        "source": "dji_avata2"
+      }
+    },
+    "preset_words": [
+      "quickshot",
+      "quickshots",
+      "mastershot",
+      "mastershots",
+      "dronie",
+      "activetrack",
+      "focustrack",
+      "dji",
+      "easy acro",
+      "waypoint flight"
+    ]
+  },
+  "denied_presets": {
+    "1ac7759b-7df1-4c96-a97a-baf611f7d38e": "Higgsfield's Earth Zoom preset — reference only until its underlying model is confirmed on the approved roster; build the move from approved models and real seeds"
+  }
+}

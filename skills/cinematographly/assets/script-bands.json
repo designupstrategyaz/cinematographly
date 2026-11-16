@@ -1,0 +1,249 @@
+{
+  "_about": "Measured bands for spoken scripts (v2.51, 2026-11-05). Counts, ratios and positions from a private corpus of published scripts and transcripts kept privately by the author for measurement only (not shipped). Write-up: the author's research notes (not shipped) Every figure is p10 / median / p90 across items unless named otherwise. These are REFERENCE BANDS: script_score.py prints them beside a script's own numbers as advisory notes (never a FAIL), beat_plan.py prints the CTA and word-budget references, and --house is the only way a band becomes a threshold, by explicit choice. A client's clients/script.<client>.json still decides its own thresholds.",
+  "measured": "2026-11-05",
+  "corpus": {
+    "screenplays": 39,
+    "interviews": 38,
+    "ads_verbatim": 67,
+    "ads_verbatim_tv_social": 48,
+    "ads_award_annual_tv_social": 20,
+    "ads_structure_records": 24,
+    "sources": "Screenplays: studio and distributor awards PDFs, official film sites, writers' own sites. Interviews: NASA and NEA (US public domain), Democracy Now! and TED (CC BY-NC-ND). Ads: US federal public-domain spots (CDC, SAMHSA, DOJ, CMS), Communication Arts Advertising Annual winners' printed scripts, brand- and platform-published examples."
+  },
+  "dialogue": {
+    "_scope": "Scripted dialogue between characters (39 screenplays: features, TV, shorts). Feature conventions transfer downward only (script-craft.md 2c): line and sentence shape yes, act structure no.",
+    "speech_words": {
+      "p10": 5,
+      "median": 6,
+      "p90": 9
+    },
+    "speech_words_p90_per_script": {
+      "p10": 15.8,
+      "median": 21,
+      "p90": 29.2
+    },
+    "speeches_10_words_or_fewer_share": {
+      "p10": 0.56,
+      "median": 0.69,
+      "p90": 0.79
+    },
+    "sentence_words": {
+      "p10": 4.76,
+      "median": 5.58,
+      "p90": 6.74
+    },
+    "question_share_of_sentences": {
+      "p10": 0.14,
+      "median": 0.18,
+      "p90": 0.23
+    },
+    "contractions_per_100_words": {
+      "p10": 4.25,
+      "median": 5.91,
+      "p90": 7.02
+    },
+    "cut_off_speech_share": {
+      "p10": 0.0,
+      "median": 0.04,
+      "p90": 0.09
+    },
+    "trailing_speech_share": {
+      "p10": 0.01,
+      "median": 0.04,
+      "p90": 0.06
+    },
+    "parentheticals_per_100_speeches": {
+      "p10": 6.3,
+      "median": 13.6,
+      "p90": 25.24
+    },
+    "house_line_ceiling": 21,
+    "_house_line_ceiling": "the median script's p90 speech, in words: what --house sets as --max-words for a dialogue script"
+  },
+  "talking_head": {
+    "_scope": "Real people answering on the record (38 interviews; edited transcripts, so fillers are a floor). The UGC / testimonial / interview-soundbite register: script_score.py --ugc.",
+    "sentence_words": {
+      "p10": 12.93,
+      "median": 16.29,
+      "p90": 21.88
+    },
+    "answer_words": {
+      "p10": 16,
+      "median": 98,
+      "p90": 219
+    },
+    "fillers_per_100_words": {
+      "p10": 0.43,
+      "median": 1.41,
+      "p90": 2.78
+    },
+    "fillers_ceiling_per_100_words": 3,
+    "connective_opener_share": 0.305,
+    "_connective_opener_share": "sentences opening on But / Yet / So / Then / Now / Also / Plus / And (an extraction pass, 'transition', 137,798 words of answers); scripted dialogue 0.049",
+    "short_closer_share_of_multi_sentence_answers": {
+      "p10": 0.1,
+      "median": 0.31,
+      "p90": 0.53
+    },
+    "short_sentence_share": 0.32,
+    "_short_closer": "a closer is the last sentence of a multi-sentence turn; short = 8 words or fewer and not a question. Real answers end short about as often as they use short sentences anywhere (0.35 vs 0.32 overall), so closers are NOT systematically punchier. The tell is the ratio: lines that keep ending short while their other sentences run long.",
+    "short_closer_warn": {
+      "share_at_least": 0.5,
+      "ratio_to_short_sentence_share_at_least": 1.5
+    },
+    "story_markers_per_1000_words": {
+      "p10": 0.0,
+      "median": 0.92,
+      "p90": 2.82
+    },
+    "lexical_variety_mattr500": {
+      "p10": 0.42,
+      "median": 0.44,
+      "p90": 0.48
+    },
+    "interview_plan": {
+      "_scope": "informational for interview planning (Tier B, re-check against a longer interview sample)",
+      "guest_share_of_words": {
+        "p10": 0.58,
+        "median": 0.68,
+        "p90": 0.85
+      },
+      "host_turn_words": {
+        "p10": 14.4,
+        "median": 31,
+        "p90": 58.35
+      },
+      "short_follow_up_share": {
+        "p10": 0.08,
+        "median": 0.25,
+        "p90": 0.44
+      },
+      "open_question_share": {
+        "p10": 0.0,
+        "median": 0.25,
+        "p90": 0.5
+      },
+      "closed_question_share": {
+        "p10": 0.05,
+        "median": 0.24,
+        "p90": 0.46
+      }
+    }
+  },
+  "ads": {
+    "_scope": "Spoken words of TV and social ads (48 verbatim scripts: 43 TV, 5 social), measured per spot.",
+    "words_per_second": {
+      "p10": 1.15,
+      "median": 2.2,
+      "p90": 2.83
+    },
+    "words_per_second_award_annual": {
+      "p10": 0.69,
+      "median": 1.76,
+      "p90": 2.5
+    },
+    "_award": "award-annual spots talk least: about a quarter of the running time is left to picture and sound",
+    "spoken_words_15s": {
+      "p10": 35.1,
+      "median": 38.5,
+      "p90": 44.7
+    },
+    "spoken_words_30s": {
+      "p10": 37.4,
+      "median": 63,
+      "p90": 81.4
+    },
+    "first_sentence_words": {
+      "p10": 3,
+      "median": 10,
+      "p90": 16
+    },
+    "sentence_words": {
+      "p10": 4.96,
+      "median": 7.27,
+      "p90": 11.12
+    },
+    "max_sentence_words_p90": 22,
+    "_max_sentence": "the author's script-gate calibration over 47 of these spots: mean sentence 5.3 / 7.7 / 10.6, max sentence 11 / 16 / 22 -- the genre's current 5-14 and 22 hold",
+    "house_line_ceiling": 22,
+    "cta_start_share_15_30s": {
+      "p10": 0.82,
+      "median": 0.88,
+      "p90": 0.91
+    },
+    "cta_spoken_share_of_spots": 0.69,
+    "brand_first_share_award_annual": {
+      "p10": 0.08,
+      "median": 0.36,
+      "p90": 0.9
+    },
+    "brand_first_share_public_service": "at the end, with the CTA",
+    "supers_per_tv_spot": {
+      "median": 3
+    },
+    "you_per_100_words": {
+      "tv_median": 3.4,
+      "social_median": 8.1
+    }
+  },
+  "long_brand_films": {
+    "_scope": "60-120 s brand films and UGC examples, from 24 structure records (beats with word positions, our words).",
+    "hook_end_share": {
+      "p10": 0.05,
+      "median": 0.16,
+      "p90": 0.24
+    },
+    "turn_start_share": {
+      "p10": 0.28,
+      "median": 0.54,
+      "p90": 0.74
+    },
+    "cta_start_share": {
+      "p10": 0.6,
+      "median": 0.74,
+      "p90": 0.88
+    },
+    "spoken_cta": "2 of 11 TV / brand / PSA records have a spoken CTA; the end card carries the brand"
+  },
+  "radio": {
+    "_scope": "19 radio spots and live reads: audio-only, so not a video band; kept for VO-only cuts.",
+    "words_per_second": {
+      "p10": 1.53,
+      "median": 2.33,
+      "p90": 3.31
+    },
+    "sentence_words": {
+      "p10": 4.56,
+      "median": 11.45,
+      "p90": 16.54
+    }
+  },
+  "features_informational": {
+    "_scope": "Feature and episode craft, for the short-film and episode modes only; never enforced on ads (script-craft.md 2c).",
+    "scene_length_pages": {
+      "p10": 0.25,
+      "median": 0.53,
+      "p90": 1.28
+    },
+    "action_paragraph_words": {
+      "p10": 9,
+      "median": 11.5,
+      "p90": 17.2
+    },
+    "dialogue_share_of_page_words": {
+      "p10": 0.24,
+      "median": 0.38,
+      "p90": 0.55
+    },
+    "first_dialogue_page": {
+      "p10": 0.14,
+      "median": 1.5,
+      "p90": 2.66
+    },
+    "scenes_in_first_10_percent": {
+      "p10": 1.8,
+      "median": 9,
+      "p90": 25.4
+    }
+  }
+}

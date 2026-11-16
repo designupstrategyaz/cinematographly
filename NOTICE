@@ -1,0 +1,22 @@
+Cinematographly
+Copyright (c) 2026 Design UpStrategy AZ LLC. Licensed under the Cinematographly Studio License 1.0
+(LICENSE; SPDX: LicenseRef-Cinematographly-Studio).
+
+Provenance marks. Every script carries two header lines: its licence identifier and the project
+identifier "cgly-3f9c1e". REUSE.toml records the copyright holder and licence for every file. These marks
+are how copies and forks are recognised; the licence (section 5c) forbids removing or changing them. The
+plugin contains no telemetry and sends nothing anywhere by itself.
+
+Not affiliated. Cinematographly is an independent project. It is not affiliated with, endorsed by or
+sponsored by Anthropic, Higgsfield, Kling (Kuaishou), ByteDance / BytePlus, Google, OpenAI, ElevenLabs,
+Blackmagic Design (DaVinci Resolve), Apple (Final Cut Pro), Adobe (Premiere Pro), Pixabay, Poly Haven,
+HeyGen or GreenSock / Webflow. Their names are used only to describe what the plugin works with; their
+products, rates and terms are theirs and change without notice.
+
+Third-party software the plugin runs but does not include:
+  - HyperFrames (npm `hyperframes`, HeyGen) — Apache License 2.0
+  - GSAP (npm `gsap`, GreenSock / Webflow) — GreenSock's Standard "no charge" licence, not open source
+    (see skills/cinematographly/assets/titles-hyperframes/NOTICE)
+  - numpy (BSD-3-Clause), opencv-python-headless (Apache-2.0 / MIT), Pillow (MIT-CMU) and the optional
+    packages listed in requirements.txt — each under its own licence, installed by you
+Their licences, not this one, govern them.

@@ -1,0 +1,166 @@
+{
+ "_what": "Music generators for route 2, read by composer.py generated record and check. status: whitelist (may ship case by case: consent first, terms snapshot, a passing blind bake-off), held (temp only until a named question is answered), temp_only (open weights untested), excluded (temp only at most; never shipped), excluded_always (never used).",
+ "_read": "2026-10-27, each vendor's own terms, from lab record lab-00018 (not shipped) Terms changed about once a quarter through 2025–26: re-read before each shipped track, and snapshot the page.",
+ "vendors": {
+  "elevenlabs": {
+   "status": "whitelist",
+   "aliases": [
+    "eleven_labs",
+    "eleven_music",
+    "elevenlabs_music"
+   ],
+   "plans_blocked": [
+    "free"
+   ],
+   "terms_url": "https://elevenlabs.io/eleven-music-model-specific-terms",
+   "terms_date": "2026-10-09",
+   "allows": "paid plans: 'All online and offline commercial use permitted, except film, TV, radio, and Studio Games'",
+   "conditions": [
+    "no Music Library building",
+    "no mimicking a recording artist's voice",
+    "Free–Pro are 'For Individual Use Only' ('Individual' undefined)",
+    "film, TV and radio need Enterprise Music"
+   ],
+   "controls": "section lengths in ms, instrumental flag, inpainting, native stems, video-to-music, 48 kHz PCM, C2PA signing",
+   "source": "[PRIMARY · Eleven Music Model-Specific Terms, last updated 09 Oct 2026 · checked 2026-10-27]"
+  },
+  "stable_audio": {
+   "status": "whitelist",
+   "aliases": [
+    "stability",
+    "stability_ai",
+    "stable_audio_3",
+    "stableaudio"
+   ],
+   "plans_blocked": [],
+   "terms_url": "https://kb.stability.ai/knowledge-base/stable-audio-commerical-and-usage-licensing",
+   "terms_date": "2026-10-27",
+   "allows": "every plan incl. Free: 'Commercial advertisements, podcasts, and client projects'; 'You own your outputs'",
+   "conditions": [
+    "indemnity only under the Enterprise licence"
+   ],
+   "controls": "exact lengths (to ~6:20), inpainting a time range; licensed training data (AudioSparx + screened Freesound)",
+   "source": "[PRIMARY · Stability KB, Stable Audio commercial and usage licensing; stableaudio.com/pricing · checked 2026-10-27]"
+  },
+  "adobe_firefly": {
+   "status": "held",
+   "aliases": [
+    "adobe",
+    "firefly",
+    "generate_music",
+    "generate_soundtrack"
+   ],
+   "why": "the IP indemnity needs a qualifying SKU and the edits a conform makes may fall outside it; held until confirmed in writing",
+   "source": "[PRIMARY · Adobe Firefly product description (eligible features as of 13 Jul 2026); Adobe blog 20 Aug 2026 · checked 2026-10-27]"
+  },
+  "google_lyria": {
+   "status": "held",
+   "aliases": [
+    "lyria",
+    "google",
+    "vertex_lyria",
+    "gemini_lyria"
+   ],
+   "why": "the output-ownership clause is unread, Lyria is not on Google's indemnified-services list, and Lyria 3 delivers MP3",
+   "source": "[PRIMARY · Google's indemnified-services list (last modified 20 Jul 2026); Vertex AI Lyria 3 docs · checked 2026-10-27]"
+  },
+  "suno": {
+   "status": "excluded",
+   "aliases": [
+    "suno_v6"
+   ],
+   "why": "rights pass only for permitted downloads, rights holders may collect revenue on platforms, and GEMA v Suno (Munich, July 2026, not final) found outputs that reproduced songs infringing",
+   "source": "[PRIMARY · blog.suno.com, ToS update effective 3 Sep 2026; SECONDARY ×4 on GEMA v Suno · checked 2026-10-27]"
+  },
+  "udio": {
+   "status": "excluded",
+   "why": "downloads of audio, video and stems disabled since 29 Oct 2025",
+   "source": "[PRIMARY · help.udio.com, changes with the UMG partnership · checked 2026-10-27]"
+  },
+  "minimax": {
+   "status": "excluded",
+   "aliases": [
+    "minimax_music",
+    "minimax_music3"
+   ],
+   "why": "the paid music API closed to new customers on 20 Aug 2026; the open weights require 'MiniMax-Music3' displayed on a product's interface",
+   "source": "[PRIMARY · MiniMax payment policy; MiniMax-Music3 model card · checked 2026-10-27]"
+  },
+  "soundraw": {
+   "status": "excluded",
+   "why": "its licence sends 'Video content not owned by the user (Movies, TV, ads, etc.)' to 'Ask SOUNDRAW', and Content ID registration is prohibited — needs a written answer",
+   "source": "[PRIMARY · Soundraw licence agreement (2024-08-23) and Creator-plan FAQ · checked 2026-10-27]"
+  },
+  "ace_step": {
+   "status": "temp_only",
+   "aliases": [
+    "ace_step_1_5"
+   ],
+   "why": "open weights (MIT), untested on the owner's hardware",
+   "source": "[PRIMARY · github.com/ACE-Step/ACE-Step-1.5 · checked 2026-10-27]"
+  },
+  "diffrhythm": {
+   "status": "temp_only",
+   "why": "open weights (Apache-2.0), untested on the owner's hardware",
+   "source": "[PRIMARY · licence file · checked 2026-10-27]"
+  },
+  "yue": {
+   "status": "temp_only",
+   "aliases": [
+    "yue_v1"
+   ],
+   "why": "YuE v1 open weights (Apache-2.0), untested; YuE2 is CC BY-NC",
+   "source": "[PRIMARY · licence file · checked 2026-10-27]"
+  },
+  "stable_audio_open": {
+   "status": "temp_only",
+   "why": "open weights under the Community License (below $1M revenue), untested",
+   "source": "[PRIMARY · Stability Community License · checked 2026-10-27]"
+  },
+  "higgsfield_sonilo": {
+   "status": "excluded_always",
+   "aliases": [
+    "sonilo",
+    "higgsfield"
+   ],
+   "why": "marked 'Game pipeline only' on the account",
+   "source": "[PRIMARY · the owner's Higgsfield account · 2026-10-26]"
+  },
+  "musicgen": {
+   "status": "excluded_always",
+   "aliases": [
+    "audiocraft",
+    "meta_musicgen"
+   ],
+   "why": "CC-BY-NC weights: non-commercial",
+   "source": "[PRIMARY · model card · checked 2026-10-27]"
+  },
+  "yue2": {
+   "status": "excluded_always",
+   "why": "CC BY-NC weights",
+   "source": "[PRIMARY · licence file · checked 2026-10-27]"
+  },
+  "songgeneration": {
+   "status": "excluded_always",
+   "aliases": [
+    "levo",
+    "tencent_songgeneration"
+   ],
+   "why": "its LICENSE says research only",
+   "source": "[PRIMARY · LICENSE file · checked 2026-10-27]"
+  }
+ },
+ "prompt_rules": {
+  "patterns": [
+   "in the style of",
+   "\\bsounds? like\\b",
+   "\\bsoundalike\\b",
+   "\\bcover of\\b",
+   "\\bremix of\\b",
+   "\\blyrics (from|of)\\b",
+   "\\bby [A-Z][a-z]+ [A-Z][a-z]+"
+  ],
+  "artists_denylist": [],
+  "why": "GEMA v Suno: the infringing outputs came from title and lyric prompts. Describe the music — tempo, instruments, mood, structure — never a work or an artist. Extend artists_denylist as names come up."
+ }
+}

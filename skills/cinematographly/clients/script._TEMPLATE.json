@@ -1,0 +1,25 @@
+{
+  "_comment": "Per-client script numbers. Read by scripts/script_score.py and scripts/beat_plan.py. ⛔ There are NO house defaults here on purpose: a 6s hook floor is right for one brief and fails every script in another. Both tools refuse to run rather than assume. Copy to script.<client>.json and fill in.",
+  "client": "<brand>",
+
+  "runtime_target_s": 0,
+  "_runtime_target_s": "Total runtime the client's channel wants. Cross-check against the delivery preset's duration_window_s in assets/delivery-formats.json.",
+
+  "hook_seconds_min": 0,
+  "_hook_seconds_min": "Floor, not a target. A hook card has to be READ, not glimpsed — but the right floor depends on how much text it carries and on the language. Measure it; do not inherit it.",
+
+  "cta_seconds": 0,
+  "_cta_seconds": "The resolved state plus one ask.",
+
+  "beat_seconds": 0,
+  "_beat_seconds": "⛔ MEASURED, not guessed: time one finished scene wall to wall across a few episodes. This is the divisor that sets the scene count, so an invented value invents the structure.",
+
+  "max_words_per_line": 0,
+  "_max_words_per_line": "Spoken-word ceiling per line. Language-dependent — the same idea is longer in some languages than others.",
+
+  "speakers": 1,
+  "_speakers": "1 = monologue (no alternation to keep; its rhythm test is inevitability). 2 = two-hander.",
+
+  "lang": "<ISO code>",
+  "last_verified": "<YYYY-MM-DD>"
+}

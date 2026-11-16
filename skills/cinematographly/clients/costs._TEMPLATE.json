@@ -1,0 +1,47 @@
+{
+  "client": "_TEMPLATE",
+  "source": "⛔ PLACEHOLDER. Read every rate off the Generate button in the UI for THIS account before using it — the published price list has measured wrong. Nothing here is a default; scripts/refresh_costs.md is the procedure.",
+  "plan": {
+    "monthly_credits": 3000,
+    "videos_per_month_min": 3,
+    "videos_per_month_max": 4,
+    "credit_price_usd": 0,
+    "_credit_price_usd": "What ONE credit actually costs this account: monthly price ÷ monthly credits. ⛔ Derive it from the invoice, not from a plan table — published tiers disagree with each other and with the account. 0 = unset, and the estimator prints credits only."
+  },
+  "default_preset": "quality",
+  "_default_preset": "Both quoting tools price QUALITY unless you pass --economy (the quality floor, SKILL.md §4 item 11); economy is a labelled comparison only (v2.62.0).",
+  "presets": {
+    "economy": {
+      "start_frame": 2,
+      "broll": 10,
+      "voiceover_line": 0.6,
+      "retry": 1.15,
+      "note": "Derived from rate_table on 2026-09-01. ⛔ DERIVE, do not copy: `python3 scripts/rate_card.py lookup --model <m> --res <r> --seconds <n>`. assets/higgsfield-rates.json -> rate_table is the only place a rate lives; a number typed here is a copy that will go stale silently. Image frames are priced separately (2 cr @2K, UI-measured). Generate at exactly delivery resolution.",
+      "dialogue_clip_per_second": 2.5,
+      "kling_dialogue": 10.0,
+      "_kling_dialogue": "ONE dialogue clip at the length this preset assumes. The key name is legacy (estimate_duration.py reads it); the VALUE is your chosen dialogue model. ⛔ DERIVE it, never copy: `python3 scripts/rate_card.py lookup --model <m> --res <r> --seconds <n>`. assets/higgsfield-rates.json -> rate_table is the only place a rate lives."
+    },
+    "quality": {
+      "start_frame": 2,
+      "broll": 36,
+      "voiceover_line": 0.6,
+      "retry": 1.3,
+      "note": "Derived from rate_table on 2026-09-01. ⛔ DERIVE, do not copy: `python3 scripts/rate_card.py lookup --model <m> --res <r> --seconds <n>`. assets/higgsfield-rates.json -> rate_table is the only place a rate lives; a number typed here is a copy that will go stale silently. Image frames are priced separately (2 cr @2K, UI-measured). Generate at exactly delivery resolution.",
+      "dialogue_clip_per_second": 2.5,
+      "kling_dialogue": 45.0,
+      "_kling_dialogue": "ONE dialogue clip at the length this preset assumes. The key name is legacy (estimate_duration.py reads it); the VALUE is your chosen dialogue model. ⛔ DERIVE it, never copy: `python3 scripts/rate_card.py lookup --model <m> --res <r> --seconds <n>`. assets/higgsfield-rates.json -> rate_table is the only place a rate lives."
+    }
+  },
+  "placeholders_to_verify": [
+    "retry factors (1.15 / 1.3) — reconcile against a finished project's real ledger spend",
+    "B-roll per-clip cost on seedance_2_0 / minimax_h3 / flux_3_video — confirm with get_cost per project",
+    "estimate_duration.py still reads the legacy 'kling_dialogue' key — rename to 'dialogue_clip' in both places on the next script pass",
+    "VO: 0.4 cr measured on Seed Audio 1.0; the <brand> voices shipped on ElevenLabs v3 — measure that model",
+    "Kling 3.0 free generations (94 available 2026-08-29) are browser-only, NOT available via MCP — decide whether the batch runs in the UI or the API before pricing it"
+  ],
+  "last_verified": "",
+  "_provenance": "PLACEHOLDER. The numbers were read on one account in 2026; they are a shape to copy, not rates for yours. Derive every rate with rate_card.py and set last_verified to the day you did.",
+  "measured_2026_08_29": {
+    "⛔": "SUPERSEDED by rate_table (2026-09-01). Left blank on purpose so nothing reads a stale figure."
+  }
+}

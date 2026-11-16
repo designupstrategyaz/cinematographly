@@ -1,0 +1,15 @@
+# The quality checks that measure pictures and sound (clip, look, title, motion, aerial and region checks).
+# The spend gate (scripts/gate.py) needs none of these: it uses the Python standard library only.
+numpy
+opencv-python-headless<5
+Pillow
+
+# Optional, per tool. Install only what you use.
+# PyYAML            — the eval cases (eval_lint.py, eval_run.py)
+# librosa           — music_fit.py beat and loudness analysis
+# beat_this         — music_fit.py downbeat tracking
+# demucs            — music_fit.py stem separation
+# faster-whisper    — lipsync_check.py and replicate.py transcription
+# matplotlib, scipy — motion_track.py plots
+# torch, sam2       — region_repair.py masks
+# bpy, mathutils    — blocking*.py run inside Blender's own Python, not this one

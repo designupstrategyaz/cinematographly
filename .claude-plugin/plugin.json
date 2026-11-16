@@ -1,0 +1,36 @@
+{
+  "name": "cinematographly",
+  "version": "3.1.0",
+  "description": "Cinematographly — a director and producer for short-form AI video and stills, brief to export: concept, script, storyboard, AI generation, voice, music, a motion-driven cut and a timeline for DaVinci Resolve, Final Cut Pro or Premiere Pro, behind realism QA and claims / AI-disclosure checks, with a spend gate on every paid call and a named person's approval between stages. Also plans and prices a job before any spend, reviews a cut and breaks down a reference ad.",
+  "author": {
+    "name": "Vlad-Teodor Mafteiu-Scai, Design UpStrategy AZ LLC",
+    "email": "vladms@designupstrategyaz.xyz",
+    "url": "https://designupstrategyaz.xyz"
+  },
+  "homepage": "https://designupstrategyaz.xyz",
+  "license": "LicenseRef-Cinematographly-Studio",
+  "keywords": [
+    "video-production",
+    "ai-video-generation",
+    "ugc",
+    "short-form-video",
+    "promo-video",
+    "hook-testing",
+    "buyer-personas",
+    "claims-compliance",
+    "ai-disclosure",
+    "realism-qa",
+    "production-design",
+    "persuasion-psychology",
+    "davinci-resolve",
+    "script-writing",
+    "storyboard",
+    "pm-workflow",
+    "credit-budget",
+    "self-evolving-skill",
+    "higgsfield",
+    "series-production",
+    "vfx-naming"
+  ],
+  "repository": "https://github.com/designupstrategyaz/cinematographly"
+}

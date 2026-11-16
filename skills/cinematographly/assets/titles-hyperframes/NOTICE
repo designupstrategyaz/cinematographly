@@ -1,0 +1,15 @@
+titles-hyperframes — third-party software this lane runs (nothing below is vendored in this folder)
+
+HyperFrames 0.8.204 (npm `hyperframes`, HeyGen) — Apache License 2.0
+  https://github.com/heygen-com/hyperframes
+  Installed by `npm ci` into node_modules/; the CLI renders and checks the generated title project.
+  It downloads its own headless Chrome (`npx hyperframes browser ensure`). Telemetry is switched off
+  by title.mjs (HYPERFRAMES_NO_TELEMETRY=1, DO_NOT_TRACK=1).
+
+GSAP 3.14.2 (npm `gsap`, GreenSock / Webflow) — GreenSock's Standard "no charge" license
+  https://gsap.com/standard-license
+  Not open source. title.mjs copies gsap.min.js from node_modules into each temporary title project at
+  render time; it is never committed here. Read the licence before using the rendered titles in a
+  product that competes with Webflow's own tools.
+
+The kits (kits/), title.mjs and test.mjs are this skill's own.

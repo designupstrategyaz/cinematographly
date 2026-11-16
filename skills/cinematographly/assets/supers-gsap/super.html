@@ -1,0 +1,78 @@
+<!doctype html>
+<!-- One super, title or end card, built as a paused GSAP timeline that render.mjs seeks frame by frame.
+     render.mjs injects window.__SPEC (the brand's type and motion block) and window.__FORMAT (pixel size,
+     fps and the safe box from assets/delivery-formats.json) before this page loads. Nothing here plays
+     on its own: the timeline only moves when window.__seek(t) is called, so every frame is exact. -->
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; width: 100%; height: 100%; background: transparent; overflow: hidden; }
+  #safe { position: absolute; display: flex; }
+  #block { display: flex; flex-direction: column; gap: 0.18em; }
+  .item { display: inline-block; will-change: transform, opacity; }
+  .line { padding: 0.12em 0.4em; border-radius: 0.12em; white-space: nowrap; }
+  .letter { display: inline-block; white-space: pre; }
+</style>
+<div id="safe"><div id="block"></div></div>
+<script src="node_modules/gsap/dist/gsap.min.js"></script>
+<script src="node_modules/gsap/dist/CustomEase.min.js"></script>
+<script>
+(async () => {
+  const S = window.__SPEC, F = window.__FORMAT;
+  const safe = document.getElementById('safe'), block = document.getElementById('block');
+  Object.assign(safe.style, { left: F.safe.left + 'px', top: F.safe.top + 'px',
+    width: (F.width - F.safe.left - F.safe.right) + 'px', height: (F.height - F.safe.top - F.safe.bottom) + 'px' });
+  const [h, v] = S.position.split('-');           // e.g. "lower-left" → vertical lower, horizontal left
+  safe.style.alignItems = { upper: 'flex-start', middle: 'center', lower: 'flex-end' }[h];
+  safe.style.justifyContent = { left: 'flex-start', center: 'center', right: 'flex-end' }[v];
+  block.style.alignItems = safe.style.justifyContent;
+
+  // A brand font from a file is loaded and checked; a failed load is reported, never silently replaced.
+  let fontStatus = 'system';
+  if (S.font.src) {
+    try { const face = new FontFace(S.font.family, `url("${S.font.src}")`, { weight: String(S.font.weight) });
+          document.fonts.add(await face.load()); fontStatus = 'loaded'; }
+    catch (e) { fontStatus = 'failed: ' + e.message; }
+  }
+  Object.assign(block.style, { fontFamily: `"${S.font.family}"`, fontWeight: S.font.weight,
+    fontSize: (F.height * S.font.sizePctOfHeight / 100) + 'px', color: S.color, lineHeight: 1.15 });
+  if (S.font.trackingEm) block.style.letterSpacing = S.font.trackingEm + 'em';
+
+  const plate = S.plate ? `rgba(${parseInt(S.plate.color.slice(1, 3), 16)},${parseInt(S.plate.color.slice(3, 5), 16)},${parseInt(S.plate.color.slice(5, 7), 16)},${S.plate.alpha})` : 'transparent';
+  const items = [];
+  for (const text of S.lines) {
+    const line = document.createElement('div'); line.className = 'line'; line.style.background = plate;
+    if (S.kind === 'title') {   // per-letter stagger is for the one hero title only (§6, §6b rule 4)
+      line.style.background = 'transparent';
+      for (const ch of text) { const l = document.createElement('span'); l.className = 'letter'; l.textContent = ch; line.appendChild(l); items.push(l); }
+    } else { line.classList.add('item'); line.textContent = text; items.push(line); }
+    block.appendChild(line);
+  }
+  await document.fonts.ready;
+
+  gsap.registerPlugin(CustomEase);
+  CustomEase.create('enter', S.curves.enter.join(','));
+  CustomEase.create('exit', S.curves.exit.join(','));
+  const s = (ms) => ms / 1000;
+  const from = { left: [-1, 0], right: [1, 0], below: [0, 1], above: [0, -1] }[S.from];
+  // travel: 6 % of the frame for a line, 3 % for a hero title's letters (they rise, they don't fly in)
+  const dist = (S.kind === 'title' ? 0.03 : 0.06) * (from[0] ? F.width : F.height);
+  const enter = s(S.ms.enter), exit = s(S.ms.exit), stagger = s(S.ms.stagger);
+  const enterEnd = enter + stagger * (items.length - 1);
+  const exitStart = S.durationS - exit;
+
+  // Key both ends of every move (§6b rule 9): fromTo for the entrance and the exit.
+  // The exit keeps the direction of travel: in from the left, out to the right.
+  const tl = gsap.timeline({ paused: true });
+  tl.fromTo(items, { x: from[0] * dist, y: from[1] * dist, opacity: 0 },
+                   { x: 0, y: 0, opacity: 1, duration: enter, ease: 'enter', stagger }, 0);
+  tl.fromTo(items, { x: 0, y: 0, opacity: 1 },
+                   { x: -from[0] * dist * 0.5, y: -from[1] * dist * 0.5, opacity: 0, duration: exit, ease: 'exit', immediateRender: false }, exitStart);
+  tl.set({}, {}, S.durationS);   // the timeline is exactly durationS long
+  window.__seek = (t) => { tl.seek(t, false); };
+  window.__seek(enterEnd);
+  const r = block.getBoundingClientRect();
+  window.__info = { enterEnd, exitStart, total: tl.duration(), items: items.length, dist, fontStatus,
+                    block: { left: r.left, top: r.top, right: r.right, bottom: r.bottom } };
+  window.__ready = true;
+})();
+</script>

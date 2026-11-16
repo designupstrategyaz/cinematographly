@@ -1,0 +1,88 @@
+Cinematographly Studio License 1.0
+SPDX-License-Identifier: LicenseRef-Cinematographly-Studio
+
+Copyright (c) 2026 Design UpStrategy AZ LLC.
+Made by Vlad-Teodor Mafteiu-Scai, Design UpStrategy AZ LLC (https://designupstrategyaz.xyz).
+
+This is a source-available licence. It is not an open-source licence approved by the Open Source
+Initiative: it limits who may use the Software for free and forbids selling it.
+
+1. Words used here.
+   "Software" means Cinematographly: the files this licence comes with, and any changed version of them.
+   "Licensor" means Design UpStrategy AZ LLC.
+   "You" means the person or organisation that uses the Software. If a person uses the Software for, within,
+   or at the direction of an organisation, You is that organisation. People who use it for the same
+   organisation are one You.
+   "Control" means the power to direct management, by holding more than half of the voting power, by the
+   right to appoint a majority of the directors or managers, or by contract. Control is tested on the day of
+   use.
+   "Affiliate" means any organisation that controls You, that You control, or that is under common control
+   with You.
+   "Regular contractor" means a natural person who was paid for work for You or for an Affiliate in at least
+   four of the thirteen weeks before the day of use. Any paid work in a week counts for that week. Work in any
+   role counts.
+   "Worker" means a natural person who is an employee, owner, partner, member, or director of You or of an
+   Affiliate and who works in that business, and a regular contractor of You or of an Affiliate.
+   "Studio Size" means the number of distinct Workers on the day You use the Software. Each person is counted
+   once. A part-time Worker counts as one person. Studio Size is the people of the business. It is not the
+   number of people who open the Software.
+
+2. Free use, for studios of 10 people or fewer. If Your Studio Size is 10 or fewer, the Licensor gives You
+   a worldwide, royalty-free, non-exclusive, non-transferable licence to use, copy and change the Software,
+   and to use it for commercial work, including work You are paid for by Your clients.
+
+3. Larger studios. If Your Studio Size is more than 10, You need a separate commercial licence from the
+   Licensor to use the Software. COMMERCIAL.md says how to ask for one. Until You have it, sections 2 and 4
+   do not apply to You.
+
+4. Sharing. You may give copies of the Software, changed or not, to others, as long as You charge nothing
+   for them, You include this licence, the NOTICE file and every copyright notice, licence header and
+   project identifier in the files, and You say clearly which files You changed. Anyone who receives a copy
+   receives it under this licence.
+
+5. What You may not do.
+   a. You may not sell, rent, lease or sublicense the Software, or a changed version of it, or charge for
+      giving it to anyone.
+   b. You may not offer a paid product or service whose value comes mainly from the Software, for example a
+      hosted version of it, a paid plugin bundle that includes it, or a subscription to it.
+   c. You may not remove or change a copyright notice, licence header, project identifier or the NOTICE
+      file, or present the Software as Your own.
+   Making videos, scripts, images and other work for Your clients with the Software is allowed (section 2);
+   section 5 is about the Software itself.
+
+6. Your productions stay with You. As between You and the Licensor, the Licensor claims no ownership in the
+   films, screenplays, storyboards, images, sound, and other creative works You produce with the Software,
+   and claims no ownership in Your prompts and project files that are not files of the Software. You may
+   agree with Your clients that they own the deliverables. This section does not promise that those works
+   are copyrightable, or that Your crew, Your clients, or any vendor has no rights in them. A change to the
+   Software, including a changed source file, stays part of the Software and stays under this licence.
+
+7. Other people's parts. Some files carry their own licence or notice, for example
+   skills/cinematographly/assets/titles-hyperframes/NOTICE. Those terms apply to those files, and this
+   licence grants no rights in them. The tools and services the Software works with (AI generation
+   vendors, DaVinci Resolve, Python packages, GSAP and others) have their own terms, which You must follow.
+   Rates, model names and vendor terms described in the Software belong to their vendors and change without
+   notice; check them before You rely on them.
+
+8. Contributions. Changes You send to the Licensor for inclusion are governed by CONTRIBUTING.md.
+
+9. Names. This licence gives You no right to use the Licensor's names, logos or trademarks, except to say
+   truthfully where the Software came from.
+
+10. Ending. If You break this licence, the Licensor may tell You in writing. If You fix the breach within
+    30 days of that notice, Your licence continues. If You do not, it ends, and You must stop using the
+    Software and delete Your copies. Work You made with the Software before it ended stays Yours.
+
+11. No warranty. The Software is provided as it is, with no warranty of any kind, express or implied,
+    including warranties of merchantability, fitness for a particular purpose and non-infringement. It plans
+    and checks paid AI generation, but You are responsible for what You spend, publish and claim, and for
+    checking every rate, rule and result before relying on it.
+
+12. Limit of liability. To the extent the law allows, the Licensor is not liable for any loss or damage that
+    comes from using the Software, including spent credits, lost work, lost profits or claims by others.
+
+13. Law. This licence is governed by the laws of the State of Wyoming, United States, without regard to its
+    conflict-of-laws rules. The state and federal courts located in Wyoming have exclusive jurisdiction over
+    any dispute about it.
+
+For a commercial licence or any other use, see COMMERCIAL.md.

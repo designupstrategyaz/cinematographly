@@ -1,0 +1,113 @@
+{
+  "_about": "Per-lane defaults for a project's title card (scripts/title_card.py propose). The house rule, 2026-10-26 (the titles and motion proposal of 2026-10-26 [studio history]): the card is the permission list (C3) — only the kinds it names are rendered, captions stay on regardless; no overshoot on any text, number or UI (C2); a title enters after the clip's head settle unless it is declared to mask it (C1). The fonts are the brand's, never a default: propose leaves them for the client profile or the flags to fill, and lint refuses a card without real font files. Every number marked [assumed] waits for approved ads to calibrate it.",
+  "_sizes": "scale.base_px is the label size at a 1920-px-tall frame; the steps are label = base, body = base·r, title = base·r², hero = base·r³, display = base·r⁴ (one scale, one ratio: Stocks, Universal Principles of Typography). Other frame heights scale proportionally.",
+  "_native": "v2.45 (2026-10-29; house rule C7, and the author: 'It keeps making mp4s which it imports'): these tokens are what scripts/fusion_titles.py writes into each kind's GENERATED Fusion title — no token changed. Made natively: the anchor face and its Style (the weight as a name: 700 Bold), the style frame's Text+ Size per kind, the ink on paper or footage, tracking (CharacterSpacing 1 + tracking_em), a kind's plate (colors.plate on Text+ element 3), an end card's page_bg (an opaque Background), and the motion — enter fade-rise (Blend 0→1 and a 1.2 % rise), tracking-in (CharacterSpacing from +0.25), blur-resolve (never ads) or cut; exit fade, fade-up or cut — as keyframes whose Bézier handles ARE the card's cubic-bezier (no overshoot: C2), keyed at frame 0, with the exit folded onto the clip's last frames by a TimeStretcher. Approximated, and `title_card.py titles` WARNS on each: per-word and mask-reveal enter as fade-rise (the lines together), stagger_ms is not applied, a stat lands on its value without count_ms, the highlighter sits behind every line rather than the one word, and the underline mark is not drawn. A look that needs them is the owner's call (engine hyperframes with their words as the engine_reason).",
+  "lanes": {
+    "ads": {
+      "audience_45plus": true,
+      "scale": {"base_px": 40, "ratio": 1.333},
+      "text_case": "none",
+      "tracking_em": -0.01,
+      "colors": {"fg": "#FFFFFF", "accent": "BRAND", "em_fg": "#FFFFFF", "plate": "rgba(10,10,12,0.72)"},
+      "motion": {"energy": "medium",
+                 "enter": {"family": "fade-rise", "ms": 450, "ease": [0.16, 1, 0.3, 1]},
+                 "exit": {"family": "fade", "ms": 250, "ease": [0.4, 0, 1, 1]},
+                 "stagger_ms": 60, "mark_ms": 320, "count_ms": 900},
+      "kinds": {
+        "hero": {"kit": "hero-line", "position": "upper", "max_words": 4, "max_count": 2, "note": "one highlighted key word, heavy display sans [the jury]"},
+        "stat": {"kit": "stat", "position": "middle", "max_count": 2},
+        "price": {"kit": "price-card", "position": "middle", "plate": true, "max_count": 1},
+        "endcard": {"kit": "end-card", "position": "middle", "page_bg": "BRAND", "min_hold_s": 2.5, "max_count": 1}
+      },
+      "transitions": {"primary": "hard cut", "accents": [], "max_accents": 2},
+      "ramps": {"max_per_video": 2, "per_20s": 1}
+    },
+    "brand": {
+      "audience_45plus": false,
+      "scale": {"base_px": 30, "ratio": 1.414},
+      "text_case": "none",
+      "tracking_em": 0.02,
+      "colors": {"fg": "#F4EFE6", "accent": "BRAND", "em_fg": "#F4EFE6", "plate": "rgba(0,0,0,0)"},
+      "motion": {"energy": "calm",
+                 "enter": {"family": "tracking-in", "ms": 1100, "ease": [0.25, 0.1, 0.25, 1]},
+                 "exit": {"family": "fade", "ms": 500, "ease": [0.4, 0, 1, 1]},
+                 "stagger_ms": 120, "mark_ms": 600, "count_ms": 1200},
+      "kinds": {
+        "lockup": {"kit": "lockup", "position": "middle", "max_count": 3, "note": "one treatment per film: a display serif anchor with a sans companion [the jury]"},
+        "super": {"kit": "super", "position": "middle", "max_count": 4},
+        "endcard": {"kit": "end-card", "position": "middle", "page_bg": "BRAND", "min_hold_s": 2.0, "max_count": 1}
+      },
+      "transitions": {"primary": "hard cut", "accents": [], "max_accents": 2},
+      "ramps": {"max_per_video": 2, "per_20s": 1}
+    },
+    "drama": {
+      "audience_45plus": false,
+      "scale": {"base_px": 30, "ratio": 1.414},
+      "text_case": "none",
+      "tracking_em": 0.01,
+      "colors": {"fg": "#F2F2F0", "accent": "#F2F2F0", "em_fg": "#F2F2F0", "plate": "rgba(0,0,0,0)"},
+      "motion": {"energy": "calm",
+                 "enter": {"family": "per-word", "ms": 800, "ease": [0.33, 0, 0.2, 1]},
+                 "exit": {"family": "fade", "ms": 600, "ease": [0.4, 0, 1, 1]},
+                 "stagger_ms": 140, "mark_ms": 600, "count_ms": 1200},
+      "kinds": {
+        "main": {"kit": "main-title", "position": "middle", "max_count": 1},
+        "place": {"kit": "place-time", "position": "lower", "align": "left", "max_count": 6},
+        "episode": {"kit": "episode-card", "position": "middle", "max_count": 1}
+      },
+      "transitions": {"primary": "hard cut", "accents": [], "max_accents": 2},
+      "ramps": {"max_per_video": 2, "per_20s": 1}
+    },
+    "golf": {
+      "note": "the golf flyover lane (aerial-and-fpv.md §7): a hole card per hole, built from 00-brief/COURSE.json and checked against it (flyover.py overlays); audience_45plus is on because club members and visitors read these on cart and visitor screens [assumed — no audience data yet]",
+      "audience_45plus": true,
+      "scale": {"base_px": 36, "ratio": 1.333},
+      "text_case": "none",
+      "tracking_em": 0.02,
+      "colors": {"fg": "#F4EFE6", "accent": "BRAND", "em_fg": "#F4EFE6", "plate": "rgba(10,10,12,0.55)"},
+      "motion": {"energy": "calm",
+                 "enter": {"family": "tracking-in", "ms": 1100, "ease": [0.25, 0.1, 0.25, 1]},
+                 "exit": {"family": "fade", "ms": 500, "ease": [0.4, 0, 1, 1]},
+                 "stagger_ms": 120, "mark_ms": 600, "count_ms": 1200},
+      "kinds": {
+        "hole": {"kit": "super", "position": "lower", "max_count": 18, "note": "'Hole 7 · Par 4 · 371 yards' — every number from the hole card; flyover.py overlays refuses a mismatch"},
+        "place": {"kit": "place-time", "position": "lower", "max_count": 1, "note": "the course, named descriptively (house rule C5)"},
+        "endcard": {"kit": "end-card", "position": "middle", "page_bg": "BRAND", "min_hold_s": 2.0, "max_count": 1}
+      },
+      "transitions": {"primary": "hard cut", "accents": [], "max_accents": 2},
+      "ramps": {"max_per_video": 2, "per_20s": 1}
+    },
+    "property": {
+      "note": "the property flyover lane (aerial-and-fpv.md §8): every room named is a room of 00-brief/PROPERTY.json; an invented room is a claims risk",
+      "audience_45plus": false,
+      "scale": {"base_px": 30, "ratio": 1.414},
+      "text_case": "none",
+      "tracking_em": 0.02,
+      "colors": {"fg": "#F4EFE6", "accent": "BRAND", "em_fg": "#F4EFE6", "plate": "rgba(0,0,0,0)"},
+      "motion": {"energy": "calm",
+                 "enter": {"family": "tracking-in", "ms": 1100, "ease": [0.25, 0.1, 0.25, 1]},
+                 "exit": {"family": "fade", "ms": 500, "ease": [0.4, 0, 1, 1]},
+                 "stagger_ms": 120, "mark_ms": 600, "count_ms": 1200},
+      "kinds": {
+        "place": {"kit": "place-time", "position": "lower", "max_count": 1, "note": "the address or the building's name"},
+        "room": {"kit": "super", "position": "lower", "max_count": 12, "note": "a room of PROPERTY.json, by its name there"},
+        "endcard": {"kit": "end-card", "position": "middle", "page_bg": "BRAND", "min_hold_s": 2.0, "max_count": 1}
+      },
+      "transitions": {"primary": "hard cut", "accents": [], "max_accents": 2},
+      "ramps": {"max_per_video": 2, "per_20s": 1}
+    },
+    "captions-only": {
+      "audience_45plus": false,
+      "scale": {"base_px": 34, "ratio": 1.333},
+      "text_case": "none", "tracking_em": 0,
+      "colors": {"fg": "#FFFFFF", "accent": "#FFFFFF", "em_fg": "#FFFFFF", "plate": "rgba(0,0,0,0.6)"},
+      "motion": {"energy": "medium",
+                 "enter": {"family": "fade-rise", "ms": 450, "ease": [0.16, 1, 0.3, 1]},
+                 "exit": {"family": "fade", "ms": 250, "ease": [0.4, 0, 1, 1]},
+                 "stagger_ms": 60, "mark_ms": 320, "count_ms": 900},
+      "kinds": {},
+      "transitions": {"primary": "hard cut", "accents": [], "max_accents": 2},
+      "ramps": {"max_per_video": 2, "per_20s": 1}
+    }
+  }
+}

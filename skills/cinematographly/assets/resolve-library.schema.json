@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "cine.resolve-library/1",
+  "title": "The installed Resolve library (scripts/resolve_library.py scan)",
+  "description": "v2.45 (2026-10-29). What is installed in DaVinci Resolve on the edit machine — titles, transitions, generators, Fusion / OFX / audio effects — with how a script places each, and a `kinds` map from this skill's kinds to the installed items. Written to <job>/07-edit/resolve-library.json, or <production root>/_studio/resolve-library.json at studio level. Sources: the console's LIBRARY_SCAN (Resolve.GetEffectsList and the template folders), a Templates folder read directly, or the owner's own list. Titles and transitions are not in GetEffectsList. OFX parameters cannot be set by script (21.1.2): an OFX item is `scriptable: defaults-only` and carries `manual`.",
+  "type": "object",
+  "required": ["schema", "items", "kinds"],
+  "properties": {
+    "schema": {"const": "cine.resolve-library/1"},
+    "resolve": {"type": ["string", "null"], "description": "Resolve's version string when the console scanned it"},
+    "scanned": {"type": "string", "description": "ISO time of the scan"},
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {"enum": ["console", "folder", "names", "effects-json"]},
+          "path": {"type": "string"},
+          "count": {"type": "integer"}
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type", "name", "kinds", "scriptable"],
+        "properties": {
+          "type": {"enum": ["title", "transition", "generator", "effect", "ofx-effect", "ofx-generator", "audio-effect"]},
+          "name": {"type": "string", "description": "as the Effects Library shows it — the name InsertFusionTitleIntoTimeline and AddTransition take"},
+          "category": {"enum": ["fusion", "ofx", "audio", "simple", null]},
+          "id": {"type": ["string", "null"], "description": "the effect id from GetEffectsList — AddEffect(category, id) needs it"},
+          "pack": {"type": "string", "description": "Krokodove, JTechWP, Video Editor Studio, Free Smooth Transitions, MrAlexTech MagicAnimate, CineDream, Higgsfield, Resolve (built in), Blackmagic, the .drfx or folder name, or unknown"},
+          "path": {"type": ["string", "null"], "description": "the template's path under its Templates root (a .drfx member as bundle::member)"},
+          "sources": {"type": "array", "items": {"type": "string"}},
+          "published_inputs": {
+            "type": ["array", "null"],
+            "description": "a Fusion macro's published inputs, read from its .setting: what a script can set through the comp",
+            "items": {"type": "object", "properties": {"id": {"type": "string"}, "name": {"type": ["string", "null"]},
+                                                       "source_op": {"type": ["string", "null"]}, "source": {"type": ["string", "null"]}}}
+          },
+          "kinds": {"type": "array", "items": {"type": "string"}, "description": "this skill's kinds the item serves (lower-third, super, hero, end-card · dissolve, whip, push, zoom, light-leak, glitch · animate-in-out, 3d-text, color-match …)"},
+          "place": {
+            "type": "object",
+            "description": "the call that places it",
+            "properties": {
+              "call": {"enum": ["InsertFusionTitleIntoTimeline", "InsertFusionGeneratorIntoTimeline", "InsertOFXGeneratorIntoTimeline", "AddTransition", "AddEffect"]},
+              "name": {"type": "string"}, "type": {"type": "string"}, "category": {"type": "string"}, "id": {"type": ["string", "null"]}
+            }
+          },
+          "scriptable": {"enum": ["inputs", "comp", "name", "defaults-only"], "description": "inputs: published inputs known · comp: a Fusion effect, inputs read through Effect.GetFusionComp() on first use · name: placed by name, nothing to set · defaults-only: OFX, applied with its defaults"},
+          "manual": {"type": "string", "description": "what a person sets by hand (MagicAnimate's In / Mid / Out, CineDream's look, Color Match's reference)"},
+          "text_safe": {"const": false, "description": "present when the name says it overshoots (bounce, elastic, pop): never on text, numbers or UI (house rule C2)"},
+          "builtin": {"type": "boolean"},
+          "star": {"type": "boolean", "description": "the owner's pick for its kinds — taken first; kept across re-scans"},
+          "note": {"type": "string"},
+          "notes": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "kinds": {
+      "type": "object",
+      "description": "\"<type>/<kind>\" → item names, best first: starred, then the grammar's default (Cross Dissolve for a dissolve), then scriptable before manual, then by name",
+      "additionalProperties": {"type": "array", "items": {"type": "string"}}
+    },
+    "manual": {"type": "array", "items": {"type": "object", "properties": {"name": {"type": "string"}, "type": {"type": "string"}, "why": {"type": "string"}}}},
+    "unmapped": {"type": "array", "items": {"type": "string"}, "description": "installed items no kind rule names — look at them, star or note them"}
+  }
+}

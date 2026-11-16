@@ -1,0 +1,282 @@
+[
+ {
+  "id": "E1",
+  "say": "a coffee mug is set down on a wooden desk, gently",
+  "need": {
+   "what": "other",
+   "object_material": "ceramic",
+   "surface_material": "wood",
+   "force": "soft",
+   "kind": "hit"
+  }
+ },
+ {
+  "id": "E2",
+  "say": "a glass bottle is put down hard on a stone counter",
+  "need": {
+   "what": "clink",
+   "object_material": "glass",
+   "surface_material": "stone",
+   "force": "hard",
+   "kind": "hit"
+  }
+ },
+ {
+  "id": "E3",
+  "say": "two wine glasses touch in a toast",
+  "need": {
+   "what": "clink",
+   "object_material": "glass",
+   "surface_material": "glass",
+   "force": "medium",
+   "kind": "hit"
+  }
+ },
+ {
+  "id": "E4",
+  "say": "a laptop lid closes",
+  "need": {
+   "what": "close",
+   "object_material": "plastic",
+   "surface_material": "plastic",
+   "force": "medium",
+   "kind": "hit"
+  }
+ },
+ {
+  "id": "E5",
+  "say": "a wooden door shuts firmly",
+  "need": {
+   "what": "close",
+   "object_material": "wood",
+   "surface_material": "wood",
+   "force": "hard",
+   "kind": "hit"
+  }
+ },
+ {
+  "id": "E6",
+  "say": "a metal spoon taps the rim of a cup",
+  "need": {
+   "what": "tap",
+   "object_material": "metal",
+   "surface_material": "ceramic",
+   "force": "soft",
+   "kind": "hit"
+  }
+ },
+ {
+  "id": "E7",
+  "say": "a book drops flat onto a table",
+  "need": {
+   "what": "drop",
+   "object_material": "paper",
+   "surface_material": "wood",
+   "force": "hard",
+   "kind": "hit"
+  }
+ },
+ {
+  "id": "E8",
+  "say": "a hand knocks twice on a door",
+  "need": {
+   "what": "knock",
+   "object_material": "skin",
+   "surface_material": "wood",
+   "force": "medium",
+   "kind": "hit"
+  }
+ },
+ {
+  "id": "E9",
+  "say": "a shoe steps on gravel",
+  "need": {
+   "what": "step",
+   "object_material": "rubber",
+   "surface_material": "stone",
+   "force": "medium",
+   "kind": "hit"
+  }
+ },
+ {
+  "id": "E10",
+  "say": "a paper bag is crumpled",
+  "need": {
+   "what": "crunch",
+   "object_material": "paper",
+   "surface_material": "none",
+   "force": "medium",
+   "kind": "hit"
+  }
+ },
+ {
+  "id": "E11",
+  "say": "a phone is slid across a table",
+  "need": {
+   "what": "slide",
+   "object_material": "plastic",
+   "surface_material": "wood",
+   "force": "soft",
+   "kind": "slide",
+   "busy_s": 0.8
+  }
+ },
+ {
+  "id": "E12",
+  "say": "a chair is scraped back on a tiled floor",
+  "need": {
+   "what": "scrape",
+   "object_material": "wood",
+   "surface_material": "stone",
+   "force": "medium",
+   "kind": "slide",
+   "busy_s": 1.0
+  }
+ },
+ {
+  "id": "E13",
+  "say": "a light switch is flicked",
+  "need": {
+   "what": "click",
+   "object_material": "plastic",
+   "surface_material": "none",
+   "force": "soft",
+   "kind": "hit"
+  }
+ },
+ {
+  "id": "E14",
+  "say": "a champagne cork pops",
+  "need": {
+   "what": "pop",
+   "object_material": "other",
+   "surface_material": "none",
+   "force": "hard",
+   "kind": "hit"
+  }
+ },
+ {
+  "id": "E15",
+  "say": "water is poured into a glass",
+  "need": {
+   "what": "pour",
+   "object_material": "water",
+   "surface_material": "glass",
+   "force": "soft",
+   "kind": "slide",
+   "busy_s": 2.0
+  }
+ },
+ {
+  "id": "E16",
+  "say": "a stone drops into a pond",
+  "need": {
+   "what": "splash",
+   "object_material": "stone",
+   "surface_material": "water",
+   "force": "medium",
+   "kind": "hit"
+  }
+ },
+ {
+  "id": "E17",
+  "say": "a dry twig snaps underfoot",
+  "need": {
+   "what": "snap",
+   "object_material": "wood",
+   "surface_material": "none",
+   "force": "medium",
+   "kind": "hit"
+  }
+ },
+ {
+  "id": "E18",
+  "say": "a jacket rustles as an arm moves",
+  "need": {
+   "what": "rustle",
+   "object_material": "fabric",
+   "surface_material": "none",
+   "force": "soft",
+   "kind": "slide",
+   "busy_s": 0.7
+  }
+ },
+ {
+  "id": "E19",
+  "say": "a tin can is set down on metal shelving",
+  "need": {
+   "what": "other",
+   "object_material": "metal",
+   "surface_material": "metal",
+   "force": "medium",
+   "kind": "hit"
+  }
+ },
+ {
+  "id": "E20",
+  "say": "an apple is bitten",
+  "need": {
+   "what": "crunch",
+   "object_material": "food",
+   "surface_material": "none",
+   "force": "medium",
+   "kind": "hit"
+  }
+ },
+ {
+  "id": "E21",
+  "say": "a cardboard box lands on a floor",
+  "need": {
+   "what": "thud",
+   "object_material": "cardboard",
+   "surface_material": "wood",
+   "force": "medium",
+   "kind": "hit"
+  }
+ },
+ {
+  "id": "E22",
+  "say": "a car door closes outside",
+  "need": {
+   "what": "close",
+   "object_material": "metal",
+   "surface_material": "metal",
+   "force": "hard",
+   "kind": "hit"
+  }
+ },
+ {
+  "id": "E23",
+  "say": "a squeeze bottle is pressed",
+  "need": {
+   "what": "squeeze",
+   "object_material": "plastic",
+   "surface_material": "none",
+   "force": "soft",
+   "kind": "hit"
+  }
+ },
+ {
+  "id": "E24",
+  "say": "a drawer is pulled open",
+  "need": {
+   "what": "open",
+   "object_material": "wood",
+   "surface_material": "wood",
+   "force": "medium",
+   "kind": "slide",
+   "busy_s": 0.6
+  }
+ },
+ {
+  "id": "E25",
+  "say": "keys are dropped on a glass table",
+  "need": {
+   "what": "drop",
+   "object_material": "metal",
+   "surface_material": "glass",
+   "force": "medium",
+   "kind": "hit"
+  }
+ }
+]

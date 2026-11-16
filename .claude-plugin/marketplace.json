@@ -1,0 +1,19 @@
+{
+  "name": "cinematographly",
+  "owner": {
+    "name": "Design UpStrategy AZ LLC"
+  },
+  "metadata": {
+    "description": "Cinematographly — a Claude Code plugin for short-form AI video, script to export, with a spend gate on every paid call"
+  },
+  "plugins": [
+    {
+      "name": "cinematographly",
+      "source": "./",
+      "description": "Director and producer for short-form AI video and stills: concept to a timeline for DaVinci Resolve, Final Cut Pro or Premiere Pro, with a spend gate on every paid call.",
+      "category": "productivity",
+      "homepage": "https://github.com/designupstrategyaz/cinematographly",
+      "license": "LicenseRef-Cinematographly-Studio"
+    }
+  ]
+}

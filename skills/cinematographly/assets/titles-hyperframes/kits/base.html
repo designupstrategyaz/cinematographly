@@ -1,0 +1,46 @@
+<!doctype html>
+<!-- One title, built by title.mjs from a kit (kits/kits.js), the project's title card and one title spec.
+     HyperFrames renders it frame-exact: the root timeline is paused and seeked to i / fps per frame.
+     Nothing here plays on its own, reads the clock or fetches anything. -->
+<html lang="en" data-resolution="__RESOLUTION__">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=__W__, height=__H__" />
+    <script src="gsap.min.js"></script>
+    <style>
+__FONTFACES__
+      :root {
+__TOKENS__
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { margin: 0; width: __W__px; height: __H__px; overflow: hidden; background: __PAGE_BG__; }
+      #root { position: relative; width: 100%; height: 100%; overflow: hidden; background: __PAGE_BG__; }
+      #safe { position: absolute; display: flex; flex-direction: column; }
+      .t-anchor { font-family: var(--t-font-anchor); font-weight: var(--t-weight-anchor); }
+      .t-companion { font-family: var(--t-font-companion); font-weight: var(--t-weight-companion); }
+      .t-line { display: block; white-space: nowrap; line-height: 1.08; color: var(--t-fg);
+                font-kerning: normal; font-feature-settings: "kern" 1, "liga" 1; }
+      .t-word { display: inline-block; white-space: pre; position: relative; isolation: isolate; }
+      .t-char { display: inline-block; white-space: pre; }
+      .t-wtext { position: relative; z-index: 1; }
+      .t-mark { position: absolute; left: -0.06em; right: -0.06em; z-index: 0; background: var(--t-accent);
+                transform-origin: left center; }
+      .t-em { color: var(--t-em-fg); }
+      .t-plate { background: var(--t-plate); border-radius: var(--t-plate-radius); }
+      .t-rule { height: var(--t-rule); background: var(--t-accent); transform-origin: left center; }
+      .t-num { font-variant-numeric: tabular-nums lining-nums; }
+      .t-logo { display: block; object-fit: contain; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="__DUR__" data-width="__W__" data-height="__H__" data-fps="__FPS__">
+      <div id="safe" class="clip" data-start="0" data-duration="__DUR__" data-track-index="0"></div>
+    </div>
+    <script>
+      window.__TITLE = __TITLE_JSON__;
+    </script>
+    <script>
+__KITS_JS__
+    </script>
+  </body>
+</html>

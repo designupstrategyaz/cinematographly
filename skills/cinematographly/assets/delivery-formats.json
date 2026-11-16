@@ -1,0 +1,273 @@
+{
+ "_about": "Delivery-format presets. The DELIVERY format is a client x platform decision and belongs in clients/<brand>.md section 5 — this file is the shared vocabulary those profiles name, and the presets export_qc.py and slop_check.py read via --format. Nothing here is a default: a skill that assumes an aspect ratio produces confidently wrong work for every client that isn't vertical short-form.",
+ "_generation_note": "GENERATION resolution is a separate decision from delivery resolution and is stack-dependent — see references/delivery-format.md section 4. Some stacks require generating at exactly the delivery size because a reference at another size returns the wrong shape; others are cheaper generating below delivery and upscaling once.",
+ "_verify": "Safe-zone figures for the 9:16 presets are now MEASURED from platform-owned template files and carry their source and date; every other preset's margins remain approximate house values. Platform UI drifts and the template files are versioned — re-download rather than trusting a cached measurement. Resolution and fps are stable; loudness is a house convention (see loudness_note), not a spec.",
+ "_updated": "2026-09-08",
+ "_max_mb_note": "OPTIONAL per preset (2026-11-03): \"max_mb\": <number>, the delivery's file-size ceiling in megabytes (1 MB = 1,000,000 bytes, the stricter reading of a ceiling written in MB). Add it only when a delivery names a ceiling; no preset carries one, and there is no default. export_qc.py --format reads it (or --max-mb gives it for one run) and FAILs a file above it, naming the size and the cap; the fix is to lower the target bitrate until the estimate fits, re-export, and record that the file compresses harder.",
+ "formats": {
+  "vertical-1080": {
+   "label": "Vertical short-form 9:16 1080p",
+   "aspect": "9:16",
+   "width": 1080,
+   "height": 1920,
+   "fps_options": [
+    24,
+    25,
+    30
+   ],
+   "fps_default": 24,
+   "duration_window_s": [
+    15,
+    90
+   ],
+   "loudness_lufs": -14.0,
+   "true_peak_dbtp": -1.0,
+   "safe_zone_pct": {
+    "top": 15,
+    "bottom": 35,
+    "left": 11,
+    "right": 28
+   },
+   "safe_zone_note": "Both published files are AD safe zones — they budget for caption text, the CTA button and the profile row. Neither TikTok nor YouTube publishes anything for ORGANIC posts, and Meta publishes nothing retrievable for Reels at all: its own page facebook.com/business/help/980593475366490 is the arbiter and has to be opened in a browser. So: safe_zone_pct is the conservative evidenced box and is what anything that will run paid — or that carries a DISCLOSURE — must sit inside. safe_zone_organic_pct is the looser house convention for organic-only posting and has NO platform source; it is what this file carried for every preset until 2026-09-08, when the template files were measured and the bottom margin turned out to be understated by ~15 points. ⛔ The widely quoted Meta '14% top / 20% bottom' and the newer '14/35/6' both trace to blogs that cite no Meta URL. Do not use them.",
+   "platforms": [
+    "TikTok",
+    "Instagram Reels",
+    "Facebook Reels",
+    "YouTube Shorts"
+   ],
+   "filename_token": "9x16",
+   "sample_rate_hz": 48000,
+   "bit_depth": 24,
+   "channels": 2,
+   "safe_zone_organic_pct": {
+    "top": 12,
+    "bottom": 20,
+    "left": 6,
+    "right": 18
+   },
+   "safe_zone_source": "MEASURED 2026-09-08 from the platforms' OWN safe-zone template files, not from a spec listicle. TikTok: the In-Feed Standard PNG inside the ZIP linked from ads.tiktok.com/help/article/tiktok-auction-in-feed-ads (page updated June 2026; file dated 2025-04-15), authored on a 720x1280 grid -> top 12.5%, bottom 34.4%, sides 11.1%, widening to 27.8% on the right where the action rail sits. YouTube: the safe-zone SVG referenced by support.google.com/google-ads/answer/9128498, labelled 1080x1920 -> top 288px (15.0%), bottom 672px (35.0%), left 48px (4.4%), right 192px (17.8%). The values below are the MAX of each margin across those two, i.e. the box evidenced to survive both.",
+   "loudness_note": "HOUSE CONVENTION, NOT A PLATFORM SPEC. None of TikTok, YouTube, Facebook or Instagram publishes a loudness target for uploads; -14 LUFS migrated into social spec sheets from music streaming. The only loudness figure any of these companies publishes is Google's -24 LKFS for Display & Video 360, a different product. Keep -14 as a consistent mastering target across a batch — that consistency is the real value — but never quote it to a client as a platform requirement.",
+   "audio_note": "48 kHz IS documented, by YouTube, Facebook and Instagram; Instagram states 48 kHz as a MAXIMUM, so a 96 kHz master is out of spec there. AAC-LC, stereo, 128 kbps+ is the documented intersection."
+  },
+  "vertical-4k": {
+   "label": "Vertical 9:16 4K",
+   "aspect": "9:16",
+   "width": 2160,
+   "height": 3840,
+   "fps_options": [
+    24,
+    25,
+    30
+   ],
+   "fps_default": 24,
+   "duration_window_s": [
+    15,
+    90
+   ],
+   "loudness_lufs": -14.0,
+   "true_peak_dbtp": -1.0,
+   "safe_zone_pct": {
+    "top": 15,
+    "bottom": 35,
+    "left": 11,
+    "right": 28
+   },
+   "platforms": [
+    "premium vertical",
+    "in-store vertical screens"
+   ],
+   "filename_token": "9x16-4k",
+   "sample_rate_hz": 48000,
+   "bit_depth": 24,
+   "channels": 2,
+   "safe_zone_organic_pct": {
+    "top": 12,
+    "bottom": 20,
+    "left": 6,
+    "right": 18
+   },
+   "safe_zone_source": "MEASURED 2026-09-08 from the platforms' OWN safe-zone template files, not from a spec listicle. TikTok: the In-Feed Standard PNG inside the ZIP linked from ads.tiktok.com/help/article/tiktok-auction-in-feed-ads (page updated June 2026; file dated 2025-04-15), authored on a 720x1280 grid -> top 12.5%, bottom 34.4%, sides 11.1%, widening to 27.8% on the right where the action rail sits. YouTube: the safe-zone SVG referenced by support.google.com/google-ads/answer/9128498, labelled 1080x1920 -> top 288px (15.0%), bottom 672px (35.0%), left 48px (4.4%), right 192px (17.8%). The values below are the MAX of each margin across those two, i.e. the box evidenced to survive both.",
+   "safe_zone_note": "Both published files are AD safe zones — they budget for caption text, the CTA button and the profile row. Neither TikTok nor YouTube publishes anything for ORGANIC posts, and Meta publishes nothing retrievable for Reels at all: its own page facebook.com/business/help/980593475366490 is the arbiter and has to be opened in a browser. So: safe_zone_pct is the conservative evidenced box and is what anything that will run paid — or that carries a DISCLOSURE — must sit inside. safe_zone_organic_pct is the looser house convention for organic-only posting and has NO platform source; it is what this file carried for every preset until 2026-09-08, when the template files were measured and the bottom margin turned out to be understated by ~15 points. ⛔ The widely quoted Meta '14% top / 20% bottom' and the newer '14/35/6' both trace to blogs that cite no Meta URL. Do not use them.",
+   "loudness_note": "HOUSE CONVENTION, NOT A PLATFORM SPEC. None of TikTok, YouTube, Facebook or Instagram publishes a loudness target for uploads; -14 LUFS migrated into social spec sheets from music streaming. The only loudness figure any of these companies publishes is Google's -24 LKFS for Display & Video 360, a different product. Keep -14 as a consistent mastering target across a batch — that consistency is the real value — but never quote it to a client as a platform requirement.",
+   "audio_note": "48 kHz IS documented, by YouTube, Facebook and Instagram; Instagram states 48 kHz as a MAXIMUM, so a 96 kHz master is out of spec there. AAC-LC, stereo, 128 kbps+ is the documented intersection."
+  },
+  "feed-4x5": {
+   "label": "In-feed portrait 4:5",
+   "aspect": "4:5",
+   "width": 1080,
+   "height": 1350,
+   "fps_options": [
+    24,
+    25,
+    30
+   ],
+   "fps_default": 30,
+   "duration_window_s": [
+    5,
+    90
+   ],
+   "loudness_lufs": -14.0,
+   "true_peak_dbtp": -1.0,
+   "safe_zone_pct": {
+    "top": 8,
+    "bottom": 12,
+    "left": 6,
+    "right": 6
+   },
+   "safe_zone_note": "Feed placements crop less aggressively than Reels but still overlay a caption block below.",
+   "platforms": [
+    "Instagram feed",
+    "Facebook feed"
+   ],
+   "filename_token": "4x5",
+   "sample_rate_hz": 48000,
+   "bit_depth": 24,
+   "channels": 2
+  },
+  "square-1080": {
+   "label": "Square 1:1",
+   "aspect": "1:1",
+   "width": 1080,
+   "height": 1080,
+   "fps_options": [
+    24,
+    25,
+    30
+   ],
+   "fps_default": 30,
+   "duration_window_s": [
+    5,
+    90
+   ],
+   "loudness_lufs": -14.0,
+   "true_peak_dbtp": -1.0,
+   "safe_zone_pct": {
+    "top": 8,
+    "bottom": 10,
+    "left": 6,
+    "right": 6
+   },
+   "platforms": [
+    "feed placements",
+    "display",
+    "some marketplace listings"
+   ],
+   "filename_token": "1x1",
+   "sample_rate_hz": 48000,
+   "bit_depth": 24,
+   "channels": 2
+  },
+  "landscape-1080": {
+   "label": "Landscape 16:9 1080p",
+   "aspect": "16:9",
+   "width": 1920,
+   "height": 1080,
+   "fps_options": [
+    24,
+    25,
+    30,
+    60
+   ],
+   "fps_default": 25,
+   "duration_window_s": [
+    10,
+    1800
+   ],
+   "loudness_lufs": -14.0,
+   "true_peak_dbtp": -1.0,
+   "safe_zone_pct": {
+    "top": 5,
+    "bottom": 10,
+    "left": 5,
+    "right": 5
+   },
+   "safe_zone_note": "Bottom margin leaves room for a player scrubber and burnt-in captions.",
+   "platforms": [
+    "YouTube",
+    "web embed",
+    "LinkedIn",
+    "presentations"
+   ],
+   "filename_token": "16x9",
+   "sample_rate_hz": 48000,
+   "bit_depth": 24,
+   "channels": 2
+  },
+  "landscape-4k": {
+   "label": "Landscape 16:9 4K",
+   "aspect": "16:9",
+   "width": 3840,
+   "height": 2160,
+   "fps_options": [
+    24,
+    25,
+    30,
+    60
+   ],
+   "fps_default": 25,
+   "duration_window_s": [
+    10,
+    1800
+   ],
+   "loudness_lufs": -14.0,
+   "true_peak_dbtp": -1.0,
+   "safe_zone_pct": {
+    "top": 5,
+    "bottom": 10,
+    "left": 5,
+    "right": 5
+   },
+   "platforms": [
+    "YouTube hero",
+    "client web hero",
+    "event screens"
+   ],
+   "filename_token": "16x9-4k",
+   "sample_rate_hz": 48000,
+   "bit_depth": 24,
+   "channels": 2
+  },
+  "broadcast-eu-1080": {
+   "label": "EU broadcast 16:9 1080i/p 25fps",
+   "aspect": "16:9",
+   "width": 1920,
+   "height": 1080,
+   "fps_options": [
+    25
+   ],
+   "fps_default": 25,
+   "duration_window_s": [
+    10,
+    60
+   ],
+   "loudness_lufs": -23.0,
+   "loudness_tolerance_lu": 0.5,
+   "short_term_max_lufs": -18.0,
+   "true_peak_dbtp": -1.0,
+   "loudness_spec_note": "EBU R 128: -23 LUFS integrated, +/-0.5 LU for file-based programmes, -1 dBTP. EBU R 128 s1 (short-form, e.g. ads): short-term loudness never above -18 LUFS. export_qc.py enforces all three from this preset (v2.60.0).",
+   "loudness_note": "EBU R128: -23 LUFS, NOT the -14 streaming target. Delivering a -14 master to a broadcaster is a rejected deliverable, and it is the single most common format mistake when a social-first team is asked for a TV cut.",
+   "safe_zone_pct": {
+    "top": 10,
+    "bottom": 10,
+    "left": 10,
+    "right": 10
+   },
+   "safe_zone_note": "Classic 90% action-safe / 80% title-safe.",
+   "platforms": [
+    "EU/RO television",
+    "cinema pre-roll"
+   ],
+   "filename_token": "16x9-bcast",
+   "sample_rate_hz": 48000,
+   "bit_depth": 24,
+   "channels": 2
+  },
+  "stills": {
+   "label": "Still images — website / marketing (Mode S, the stills lane)",
+   "kind": "stills",
+   "aspect": null,
+   "_note": "No fixed aspect, size or fps: a stills job delivers several shapes (a 16:9 hero, a 1:1 card, a 4:5 feed image), so each 01-script/prompts/<ID>.frame.prompt.md declares its own `aspect:` and gate.py holds the call to THAT. Valid only with `Mode: S` in the checkpoint, and Mode S is valid only with this preset (gate.py Job.validate). Not a video preset: export_qc.py, slop_check.py and build_captions.py have nothing to measure here."
+  }
+ },
+ "_audio_note": "48 kHz is the video world's sample rate; 44.1 kHz is the music world's. A 44.1k library track dropped into a 48k timeline is the classic pitch/sync bug, and it is silent until someone hears it. Every preset states the rate so export_qc.py can check the rendered file rather than trusting the NLE."
+}

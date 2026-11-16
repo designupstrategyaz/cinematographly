@@ -1,0 +1,93 @@
+{
+ "job": "example",
+ "lane": "ads",
+ "genre": "sleep aid",
+ "_note": "An example card as title_card.py propose writes it, with the brand's values filled in. The fonts are placeholders: point them at the brand's own font files.",
+ "audience_45plus": true,
+ "scale": {
+  "base_px": 40,
+  "ratio": 1.333
+ },
+ "text_case": "none",
+ "tracking_em": -0.01,
+ "colors": {
+  "fg": "#FFFFFF",
+  "accent": "#E8432E",
+  "em_fg": "#FFFFFF",
+  "plate": "rgba(10,10,12,0.72)"
+ },
+ "motion": {
+  "energy": "medium",
+  "enter": {
+   "family": "fade-rise",
+   "ms": 450,
+   "ease": [
+    0.16,
+    1,
+    0.3,
+    1
+   ]
+  },
+  "exit": {
+   "family": "fade",
+   "ms": 250,
+   "ease": [
+    0.4,
+    0,
+    1,
+    1
+   ]
+  },
+  "stagger_ms": 60,
+  "mark_ms": 320,
+  "count_ms": 900
+ },
+ "kinds": {
+  "hero": {
+   "kit": "hero-line",
+   "position": "upper",
+   "max_words": 4,
+   "max_count": 2,
+   "note": "one highlighted key word, heavy display sans [the jury]"
+  },
+  "stat": {
+   "kit": "stat",
+   "position": "middle",
+   "max_count": 2
+  },
+  "price": {
+   "kit": "price-card",
+   "position": "middle",
+   "plate": true,
+   "max_count": 1
+  },
+  "endcard": {
+   "kit": "end-card",
+   "position": "middle",
+   "page_bg": "#111111",
+   "min_hold_s": 2.5,
+   "max_count": 1
+  }
+ },
+ "transitions": {
+  "primary": "hard cut",
+  "accents": [],
+  "max_accents": 2
+ },
+ "ramps": {
+  "max_per_video": 2,
+  "per_20s": 1
+ },
+ "fonts": {
+  "anchor": {
+   "family": "Brand Display",
+   "file": "fonts/BrandDisplay-ExtraBold.otf",
+   "weight": 800
+  },
+  "companion": {
+   "family": "Brand Text",
+   "file": "fonts/BrandText-Medium.otf",
+   "weight": 500
+  }
+ }
+}

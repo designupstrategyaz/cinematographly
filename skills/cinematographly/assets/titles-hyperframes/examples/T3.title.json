@@ -1,0 +1,17 @@
+{
+ "id": "T3",
+ "kind": "price",
+ "duration_s": 3.0,
+ "at_s": 11.2,
+ "anchor": {
+  "type": "cut",
+  "at_s": 11.2
+ },
+ "said_by_vo": false,
+ "content": {
+  "kicker": "Today only",
+  "price": "$49",
+  "was": "$89",
+  "note": "Free returns"
+ }
+}

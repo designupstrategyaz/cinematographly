@@ -1,0 +1,159 @@
+{
+ "_what": "Route 1's instruments and palette, read by composer.py. A part's family decides whether route 1 may render it (the palette); an instrument file renders client music only when its row says paid_ads yes. Unknown instruments are refused until a row is added from the licence itself.",
+ "_read": "2026-10-27, from lab record lab-00018 (not shipped) (licence pages read that day). Re-read a licence older than six months before relying on its row.",
+ "palette": {
+  "allowed": [
+   "synth",
+   "piano",
+   "bell",
+   "percussion",
+   "ambient"
+  ],
+  "blocked": {
+   "solo_strings": "exposed solo strings give a sample mockup away (practitioners: bow-change legato is 'kryptonite for samples')",
+   "winds": "solo winds sound cheap from samples",
+   "guitar": "sampled guitars sound cheap",
+   "vocals": "route 1 does not render voices; AI vocals are route 2, case by case, with their record",
+   "orchestral": "orchestral realism is beyond free and owner-licensed libraries"
+  }
+ },
+ "parts": {
+  "pad": "synth",
+  "sub": "synth",
+  "lead": "synth",
+  "arp": "synth",
+  "pluck": "synth",
+  "bell": "bell",
+  "piano": "piano",
+  "kick": "percussion",
+  "snare": "percussion",
+  "hat": "percussion",
+  "impact": "percussion",
+  "tom": "percussion",
+  "texture": "ambient",
+  "strings": "orchestral",
+  "brass": "orchestral",
+  "solo_violin": "solo_strings",
+  "solo_cello": "solo_strings",
+  "flute": "winds",
+  "clarinet": "winds",
+  "guitar": "guitar",
+  "vox": "vocals",
+  "choir": "vocals"
+ },
+ "instruments": [
+  {
+   "id": "builtin",
+   "name": "composer.py built-in synths (numpy)",
+   "licence": "own code, no third-party samples",
+   "paid_ads": "yes",
+   "source": "[PRIMARY · this skill · 2026-10-27]"
+  },
+  {
+   "id": "vsco2ce",
+   "match": "vsco",
+   "name": "VSCO 2 Community Edition",
+   "licence": "CC0 1.0",
+   "paid_ads": "yes",
+   "source": "[PRIMARY · VSCO 2 CE licence · checked 2026-10-27]"
+  },
+  {
+   "id": "generaluser_gs",
+   "match": "generaluser",
+   "name": "GeneralUser GS (SF2)",
+   "licence": "use 'without restriction… private or commercial'",
+   "paid_ads": "yes",
+   "condition": "its author is unsure of some samples' origins — prefer it for sketches",
+   "source": "[PRIMARY · GeneralUser GS licence · checked 2026-10-27]"
+  },
+  {
+   "id": "spitfire_labs",
+   "match": "spitfire|labs",
+   "name": "Spitfire LABS",
+   "licence": "royalty-free in productions; no standalone redistribution",
+   "paid_ads": "yes",
+   "condition": "LABS moved to Splice INSTRUMENT; headless loading untested",
+   "source": "[PRIMARY · Spitfire EULA · checked 2026-10-27]"
+  },
+  {
+   "id": "bbcso_discover",
+   "match": "bbc.?symphony|bbcso",
+   "name": "BBC Symphony Orchestra Discover",
+   "licence": "royalty-free",
+   "paid_ads": "yes",
+   "condition": "orchestral family is outside the palette without an override",
+   "source": "[PRIMARY · Spitfire EULA · checked 2026-10-27]"
+  },
+  {
+   "id": "native_instruments",
+   "match": "native.?instruments|kontakt|komplete",
+   "name": "Native Instruments content",
+   "licence": "EULA 2026-07-01: commercial productions allowed; no standalone redistribution; no AI training",
+   "paid_ads": "yes",
+   "source": "[PRIMARY · NI EULA dated 2026-07-01 · checked 2026-10-27]"
+  },
+  {
+   "id": "apple_logic",
+   "match": "logic|garageband|apple.?loops",
+   "name": "Apple Logic Pro / GarageBand content",
+   "licence": "royalty-free in soundtracks; no standalone use or 'music beds'",
+   "paid_ads": "unverified",
+   "condition": "the terms read were the 2013 Logic Pro X version; 'no music beds' may bar a bed made mostly of loops",
+   "source": "[PRIMARY · Logic Pro X licence (2013) · checked 2026-10-27]"
+  },
+  {
+   "id": "pianobook",
+   "match": "pianobook",
+   "name": "Pianobook",
+   "licence": "commercial use allowed",
+   "paid_ads": "unverified",
+   "condition": "the site does not guarantee where samples came from — check each instrument",
+   "source": "[PRIMARY · Pianobook terms · checked 2026-10-27]"
+  },
+  {
+   "id": "sonatina",
+   "match": "sonatina",
+   "name": "Sonatina Symphonic Orchestra",
+   "licence": "CC Sampling Plus 1.0",
+   "paid_ads": "no",
+   "why": "'You may not use this work to advertise for or promote anything but the work you create from it'",
+   "source": "[PRIMARY · CC Sampling Plus 1.0 · checked 2026-10-27]"
+  },
+  {
+   "id": "virtual_playing_orchestra",
+   "match": "virtual.?playing|\\bvpo\\b",
+   "name": "Virtual Playing Orchestra",
+   "licence": "built on Sonatina samples",
+   "paid_ads": "no",
+   "why": "inherits Sonatina's advertising ban",
+   "source": "[PRIMARY · VPO notes · checked 2026-10-27]"
+  },
+  {
+   "id": "ocular_sounds",
+   "match": "ocular",
+   "name": "Ocular Sounds (SFX packs)",
+   "licence": "Ocular Sounds sound-effects licence",
+   "paid_ads": "yes",
+   "condition": "never 'the main element of a music track'; per user (an outside editor needs a seat)",
+   "source": "[PRIMARY · ocularsounds.com product pages and licence summary · checked 2026-10-27]"
+  },
+  {
+   "id": "ghosthack",
+   "match": "ghosthack|coriolis",
+   "name": "Ghosthack packs and construction kits",
+   "licence": "royalty-free (FAQ)",
+   "paid_ads": "unverified",
+   "why": "the kit's own licence text is unread; the FAQ bars releasing rendered kit songs as your own",
+   "source": "[PRIMARY · Ghosthack FAQ · checked 2026-10-27]"
+  },
+  {
+   "id": "midi_gpt",
+   "match": "midi.?gpt",
+   "name": "MIDI-GPT weights",
+   "licence": "CC-BY-NC-4.0",
+   "paid_ads": "no",
+   "why": "non-commercial weights",
+   "source": "[PRIMARY · Metacreation/MIDI-GPT model card · checked 2026-10-27]"
+  }
+ ]
+}
