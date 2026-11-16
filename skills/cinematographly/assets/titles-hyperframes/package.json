@@ -4,7 +4,7 @@
   "private": true,
   "description": "Title kits rendered through HyperFrames from a project's title card (references/typography-and-captions.md §6c)",
   "type": "module",
-  "license": "UNLICENSED",
+  "license": "LicenseRef-Cinematographly-Studio",
   "scripts": {
     "test": "node test.mjs"
   },

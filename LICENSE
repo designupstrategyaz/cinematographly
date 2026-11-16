@@ -4,6 +4,9 @@ SPDX-License-Identifier: LicenseRef-Cinematographly-Studio
 Copyright (c) 2026 Design UpStrategy AZ LLC.
 Made by Vlad-Teodor Mafteiu-Scai, Design UpStrategy AZ LLC (https://designupstrategyaz.xyz).
 
+By using, copying, or changing the Software, You agree to this licence. If You do not agree, do not use, copy, or
+change the Software.
+
 This is a source-available licence. It is not an open-source licence approved by the Open Source
 Initiative: it limits who may use the Software for free and forbids selling it.
 
@@ -28,27 +31,35 @@ Initiative: it limits who may use the Software for free and forbids selling it.
    number of people who open the Software.
 
 2. Free use, for studios of 10 people or fewer. If Your Studio Size is 10 or fewer, the Licensor gives You
-   a worldwide, royalty-free, non-exclusive, non-transferable licence to use, copy and change the Software,
-   and to use it for commercial work, including work You are paid for by Your clients.
+   a worldwide, royalty-free, non-exclusive licence to use, reproduce and adapt the Software for Your own use,
+   including commercial work You are paid for by Your clients. It is non-transferable: You may not assign it.
+   Giving copies to others is section 4 only.
 
-3. Larger studios. If Your Studio Size is more than 10, You need a separate commercial licence from the
-   Licensor to use the Software. COMMERCIAL.md says how to ask for one. Until You have it, sections 2 and 4
-   do not apply to You.
+3. Larger studios. If Your Studio Size is more than 10 on a day You use the Software, You have no licence under
+   sections 2 and 4 for new use unless a commercial licence covers You. Studio Size is tested on each day of
+   use. If it is 10 or fewer again, section 2 applies again from that day. If Studio Size goes above 10, You may
+   finish a job already started, for 30 days after the first day it is above 10, and You may not start a new
+   job in those 30 days. When the 30 days end, You stop using the Software unless You then have a commercial
+   licence or Your Studio Size is 10 or fewer. Copies others already received under section 4 stay under this
+   licence for those recipients. COMMERCIAL.md says how to ask. A commercial licence is a separate writing
+   signed by the Licensor.
 
-4. Sharing. You may give copies of the Software, changed or not, to others, as long as You charge nothing
-   for them, You include this licence, the NOTICE file and every copyright notice, licence header and
-   project identifier in the files, and You say clearly which files You changed. Anyone who receives a copy
-   receives it under this licence.
+4. Sharing. If section 2 applies to You, You may give anyone a copy of the Software, changed or unchanged, at
+   no charge. You include this licence, the NOTICE file, every copyright notice, every licence header and every
+   project identifier, and You say which files You changed. The recipient receives that copy from the Licensor
+   under this licence, and may use it only if the recipient's own Studio Size qualifies. That recipient's
+   licence continues on its own terms if Yours ends. This section is the only right to distribute. It is not
+   an assignment and it is not a sublicense.
 
 5. What You may not do.
-   a. You may not sell, rent, lease or sublicense the Software, or a changed version of it, or charge for
-      giving it to anyone.
-   b. You may not offer a paid product or service whose value comes mainly from the Software, for example a
-      hosted version of it, a paid plugin bundle that includes it, or a subscription to it.
-   c. You may not remove or change a copyright notice, licence header, project identifier or the NOTICE
-      file, or present the Software as Your own.
-   Making videos, scripts, images and other work for Your clients with the Software is allowed (section 2);
-   section 5 is about the Software itself.
+   a. You may not sell, rent, lease, or sublicense the Software or a changed version of it, and You may not
+      charge anyone for a copy or for access to it. Section 4 is allowed.
+   b. You may not make the Software, or access to it, the thing the customer pays for. That includes a hosted
+      or managed version, a subscription to the Software, and a paid bundle whose customer is paying for the
+      Software. Being paid to make a film, screenplay, storyboard, image, or sound for a client, using the
+      Software as a tool, is allowed under section 2.
+   c. You may not remove or change a copyright notice, licence header, project identifier, or the NOTICE file,
+      or present the Software as Your own product.
 
 6. Your productions stay with You. As between You and the Licensor, the Licensor claims no ownership in the
    films, screenplays, storyboards, images, sound, and other creative works You produce with the Software,
@@ -62,27 +73,54 @@ Initiative: it limits who may use the Software for free and forbids selling it.
    licence grants no rights in them. The tools and services the Software works with (AI generation
    vendors, DaVinci Resolve, Python packages, GSAP and others) have their own terms, which You must follow.
    Rates, model names and vendor terms described in the Software belong to their vendors and change without
-   notice; check them before You rely on them.
+   notice; check them before You rely on them. Those other terms apply to other people's software only. They do
+   not take the title kits, title.mjs, or test.mjs out of this licence. This licence does not give You
+   HyperFrames, GSAP, or any other vendor's software.
 
 8. Contributions. Changes You send to the Licensor for inclusion are governed by CONTRIBUTING.md.
 
-9. Names. This licence gives You no right to use the Licensor's names, logos or trademarks, except to say
-   truthfully where the Software came from.
+9. Names. This licence gives You no right to use the Licensor's names, logos, or trademarks, including
+   Cinematographly, except to say truthfully where the Software came from. A changed version You give to anyone
+   else must carry a different name. You may say it is a changed version of Cinematographly and that the
+   Licensor did not produce it.
 
-10. Ending. If You break this licence, the Licensor may tell You in writing. If You fix the breach within
-    30 days of that notice, Your licence continues. If You do not, it ends, and You must stop using the
-    Software and delete Your copies. Work You made with the Software before it ended stays Yours.
+10. Ending. If You break this licence, it continues unless the Licensor gives You written notice of the breach
+    and You do not cure it within 30 days after that notice. Email is written notice. If You do not cure it in
+    time, the licence ends, You stop using the Software, and You delete the copies in Your possession. Copies
+    others already received under section 4 stay licensed to those recipients. Studio Size above 10 is governed
+    by section 3, not by this section. Sections 6, 9, 11, 12, 13, 15, and 16 survive the end of this licence.
 
-11. No warranty. The Software is provided as it is, with no warranty of any kind, express or implied,
-    including warranties of merchantability, fitness for a particular purpose and non-infringement. It plans
-    and checks paid AI generation, but You are responsible for what You spend, publish and claim, and for
-    checking every rate, rule and result before relying on it.
+11. NO WARRANTY. THE SOFTWARE IS PROVIDED AS IS, WITH NO WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+    ANY WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, OR NON-INFRINGEMENT. THE LICENSOR
+    DOES NOT WARRANT THAT USE WILL BE UNINTERRUPTED OR ERROR-FREE, OR THAT ANY RATE, VENDOR RULE, OR GENERATED
+    RESULT IS CORRECT. THE SOFTWARE PLANS AND CHECKS PAID AI GENERATION, BUT YOU ARE RESPONSIBLE FOR WHAT YOU
+    SPEND, PUBLISH, AND CLAIM, AND FOR CHECKING EVERY RATE, RULE, AND RESULT BEFORE YOU RELY ON IT.
 
-12. Limit of liability. To the extent the law allows, the Licensor is not liable for any loss or damage that
-    comes from using the Software, including spent credits, lost work, lost profits or claims by others.
+12. LIMIT OF LIABILITY. TO THE EXTENT THE LAW ALLOWS, THE LICENSOR WILL NOT BE LIABLE FOR ANY INDIRECT,
+    INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGE, OR ANY LOSS OF PROFITS, DATA, GOODWILL, OR PRODUCTION
+    CREDITS, ARISING FROM THIS LICENCE OR THE SOFTWARE, WHETHER IN CONTRACT, TORT, OR OTHERWISE, EVEN IF ADVISED
+    OF THE POSSIBILITY. TO THE EXTENT THE LAW ALLOWS, THE LICENSOR'S TOTAL LIABILITY ARISING FROM THIS LICENCE OR
+    THE SOFTWARE WILL NOT EXCEED THE AMOUNT YOU PAID THE LICENSOR FOR THE LICENCE IN THE TWELVE MONTHS BEFORE THE
+    CLAIM. IF YOU PAID NOTHING, THAT CAP IS ZERO. THIS LIMIT DOES NOT APPLY TO LIABILITY THE LAW DOES NOT ALLOW A
+    CONTRACT TO LIMIT, INCLUDING THE LICENSOR'S FRAUD OR WILLFUL MISCONDUCT.
 
 13. Law. This licence is governed by the laws of the State of Wyoming, United States, without regard to its
     conflict-of-laws rules. The state and federal courts located in Wyoming have exclusive jurisdiction over
     any dispute about it.
+
+14. Patents. The Licensor grants no patent licence. No right is granted under any patent of the Licensor or of
+    any other person.
+
+15. Severability. If a court holds a provision unenforceable, that provision is modified to the smallest extent
+    that makes it enforceable, and the rest stays in force. If a court refuses to enforce section 1, 2, 3, or 5
+    as a limit on who may use the Software or on selling, hosting, or charging for it, this licence ends instead
+    of expanding, and You stop using the Software.
+
+16. Whole licence. This file is the whole licence between You and the Licensor for this copy. COMMERCIAL.md
+    tells You how to ask for a commercial licence and is not part of this licence. If COMMERCIAL.md, NOTICE, or
+    README.md differs from this file, this file controls. A commercial licence in a writing signed by the
+    Licensor may vary these terms for its parties. While You comply, the grant in this version for the copy You
+    received is irrevocable. The Licensor may publish a later version for a later release. A later version does
+    not change the terms of a copy You already received.
 
 For a commercial licence or any other use, see COMMERCIAL.md.

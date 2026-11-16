@@ -21,11 +21,13 @@ Final Cut Pro and Premiere Pro imports are not tested on our machines. A short r
 
 ## The licence for your contribution
 
-By sending a contribution (a pull request, a patch or code in an issue) you confirm that you wrote it or have
-the right to give it, and you grant Design UpStrategy AZ LLC a perpetual, worldwide, non-exclusive,
-royalty-free, irrevocable licence to use, copy, change, distribute, sublicense and relicense it, including
-under commercial licences. You keep the copyright in your contribution. Adding this line to each commit is
-your agreement to this grant:
+By sending a contribution (a pull request, a patch, or code in an issue) you confirm that you wrote it or have
+the right to grant the rights below, and that if an employer or client owns your work, they have authorised this
+grant. You grant Design UpStrategy AZ LLC a perpetual, worldwide, non-exclusive, royalty-free, irrevocable
+licence to use, copy, change, distribute, sublicense, and relicense the contribution, including under commercial
+licences, and a licence under any patent you can license that the contribution alone necessarily infringes. You
+keep the copyright. The contribution is provided as it is, with no warranty. Adding this line to each commit
+records your agreement:
 
     Signed-off-by: Your Name <you@example.com>
 

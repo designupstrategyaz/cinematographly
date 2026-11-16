@@ -1,0 +1,46 @@
+name: Bug report
+description: Something did not work as the docs say.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Leave out client names, people's names, API keys and anything from a client's brief.
+  - type: input
+    id: plugin_version
+    attributes:
+      label: Cinematographly version
+      description: "`claude plugin details cinematographly`, or the version `/cinematographly:doctor` prints."
+      placeholder: "3.1.1"
+    validations:
+      required: true
+  - type: input
+    id: claude_code_version
+    attributes:
+      label: Claude Code version and OS
+      placeholder: "Claude Code 2.1.301 on macOS 26.2"
+    validations:
+      required: true
+  - type: textarea
+    id: what_happened
+    attributes:
+      label: What happened, and what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The commands you ran, in order. Paste the gate's refusal text if there was one.
+    validations:
+      required: true
+  - type: dropdown
+    id: spend
+    attributes:
+      label: Were paid generation credits spent?
+      options:
+        - "No"
+        - "Yes"
+        - "Not sure"
+    validations:
+      required: true

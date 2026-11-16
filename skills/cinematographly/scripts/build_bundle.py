@@ -101,7 +101,8 @@ def load_names(path: str) -> list[tuple[re.Pattern, str]]:
 # any OTHER listed name in those two files, still refuses the build.
 CREDIT_FILES = (".claude-plugin/plugin.json", "LICENSE", "LICENSES/LicenseRef-Cinematographly-Studio.txt", "NOTICE",
                 "REUSE.toml", "README.md", "COMMERCIAL.md",   # (3.0.0) + the licence copies and the public pages
-                "CONTRIBUTING.md", "SECURITY.md", ".claude-plugin/marketplace.json")   # the public repo's own (overlay)
+                "CONTRIBUTING.md", "SECURITY.md", ".claude-plugin/marketplace.json",   # the public repo's own (overlay)
+                ".github/FUNDING.yml", ".github/ISSUE_TEMPLATE/config.yml")   # (3.1.2) the store and the repo's links
 
 
 def declared_credit(root: str) -> list[str]:
@@ -117,6 +118,11 @@ def declared_credit(root: str) -> list[str]:
     out = [s for s in (name, a.get("url") if isinstance(a, dict) else None, a.get("email") if isinstance(a, dict) else None,
                        d.get("homepage"), repo, slug) if s]
     out += [part.strip() for part in str(name or "").split(",") if part.strip()]
+    if slug and "/" in slug:
+        # (3.1.2, owner: "Link to Gumroad product store") the support store under the SAME handle as the declared
+        # repository is part of the declared credit; nothing else about that handle is
+        owner = slug.split("/")[0]
+        out += [f"https://{owner}.gumroad.com", f"{owner}.gumroad.com"]
     return sorted(set(out), key=len, reverse=True)
 
 
@@ -263,6 +269,19 @@ def selftest() -> int:
         put("LICENSES/LicenseRef-Cinematographly-Studio.txt", "Copyright (c) 2026 Roe Films LLC.\nMade by Jane Roe, Roe Films LLC.\n")
         rc, _f, P = build(root, out + "6", nf)
         check("(v2.64.0) the declared author credit in the manifest and the LICENSE builds", rc == 0, str(P))
+        # (3.1.2) the support store under the declared repository's handle is credit too; the bare handle is not
+        open(nf, "a", encoding="utf-8").write("roefilms\tstudio\tci\n")
+        put(".claude-plugin/plugin.json", json.dumps({"name": "cinematographly", "version": "9.9.0",
+                                                      "author": {"name": "Jane Roe, Roe Films LLC", "url": "https://roe.example"},
+                                                      "homepage": "https://roe.example",
+                                                      "repository": "https://github.com/roefilms/cinematographly"}))
+        put("README.md", "Support it: [roefilms.gumroad.com](https://roefilms.gumroad.com).\n")
+        rc, _f, P = build(root, out + "6g", nf)
+        check("(3.1.2) the store under the declared repository's handle builds in a credit file", rc == 0, str(P))
+        put("README.md", "Support it: https://roefilms.gumroad.com, or ask roefilms directly.\n")
+        rc, _f, P = build(root, out + "6h", nf)
+        check("(3.1.2) SABOTAGE the bare handle beside the store still refuses", rc == 1 and any("README.md" in p for p in P), str(P))
+        put("README.md")
         put(SK + "references/r.md", "thanks to Jane Roe\n")
         rc, _f, P = build(root, out + "7", nf)
         check("(v2.64.0) SABOTAGE the same name anywhere else still refuses", rc == 1 and any("references/r.md" in p for p in P), str(P))

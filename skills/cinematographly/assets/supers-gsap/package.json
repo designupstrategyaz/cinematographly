@@ -1,6 +1,7 @@
 {
   "name": "cinematography-supers-gsap",
   "private": true,
+  "license": "LicenseRef-Cinematographly-Studio",
   "type": "module",
   "description": "Optional lane: render a super, title or end card from the brand's motion system (typography-and-captions.md §6b) to an alpha PNG sequence and ProRes 4444, frame-accurately, for every delivery format.",
   "scripts": {

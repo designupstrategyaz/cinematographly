@@ -16,11 +16,12 @@ counted with that organisation.
   licence, and how many of those people would use Cinematographly.
 
 You will get a quote and the licence terms by email. Until you have a commercial licence, a studio of more
-than 10 people may not use the plugin.
+than 10 people may not use the plugin, apart from the 30 days LICENSE section 3 gives to finish a job already
+started when a studio grows past 10.
 
-What a commercial licence does not change: you still may not sell the plugin itself or a paid service built
-mainly on it (for example a hosted version of it, or a paid bundle or subscription that includes it) unless the
-commercial licence says so in writing, and the films you make stay yours. Making videos for your clients with it
-is not "a service built mainly on it": that is the use the licence is for.
+What a commercial licence does not change: you still may not sell the plugin itself, or a paid product or hosted
+service whose customer is paying for the plugin or for access to it (for example a hosted version, or a paid
+bundle or subscription that includes it), unless the commercial licence says so in writing, and the licensor
+still claims no ownership in the films you make. Being paid to make videos for your clients with it is not that: it is the use the licence is for.
 
 Nothing on this page is legal advice. The licence text in `LICENSE` is what applies.

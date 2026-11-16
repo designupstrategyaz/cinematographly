@@ -1,11 +1,37 @@
 # Cinematographly
 
+[![Latest release](https://img.shields.io/github/v/release/designupstrategyaz/cinematographly?label=release)](https://github.com/designupstrategyaz/cinematographly/releases/latest)
+[![Licence: source-available](https://img.shields.io/badge/licence-source--available-blue)](LICENSE)
+[![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757)](https://docs.anthropic.com/en/docs/claude-code/plugins)
+
 **A Claude Code plugin that directs and produces short AI video — brief to export — with a spend gate on every paid
 call and a named person's approval between stages.**
 
 It works the way a small production team does: concept, script, storyboard, casting, start frames, voice, clips,
 selects, music, edit, picture lock, mix and titles, QC, delivery. It also plans and prices a job without making
 anything, reviews a cut, and breaks down a reference ad.
+
+<!-- DEMO: the demo video goes here. Drag the .mp4 (under 10 MB) into a GitHub README edit and paste the
+     github.com/user-attachments/... URL on its own line, or link a poster still to the full video. -->
+
+## Install
+
+In Claude Code:
+
+```
+/plugin marketplace add designupstrategyaz/cinematographly
+/plugin install cinematographly@cinematographly
+```
+
+(On Claude Code 2.1.275 or later, one line does both: `/plugin install cinematographly --marketplace designupstrategyaz/cinematographly`.)
+
+Restart Claude Code, then run `/cinematographly:doctor`. If the commands do not appear, run
+`claude plugin details cinematographly` in a terminal and check the plugin is enabled.
+
+**Upgrading from the old `cinematography` plugin?** Uninstall it first, so two gates do not run on one call: in
+`/plugin` find the line `cinematography@<marketplace>` and uninstall it, or run
+`claude plugin uninstall cinematography@<marketplace>` in a terminal. Your settings in `~/.cinematography` are merged into `~/.cinematographly` the first time
+the gate runs; nothing is overwritten and an open job survives. `doctor` turns red while the old plugin is installed.
 
 ## How it works
 
@@ -27,25 +53,6 @@ anything, reviews a cut, and breaks down a reference ad.
   `studio_setup.py --hookless` once: approvals are then recorded as unverified, and batch approvals are not available).
 - **The gate fails closed.** If it cannot run or answers nothing, the paid call is refused.
 - **Reads are free and silent.** Model lists, balances, job status and every local check run without asking.
-
-## Install
-
-In Claude Code:
-
-```
-/plugin marketplace add designupstrategyaz/cinematographly
-/plugin install cinematographly@cinematographly
-```
-
-(On Claude Code 2.1.275 or later, one line does both: `/plugin install cinematographly --marketplace designupstrategyaz/cinematographly`.)
-
-Restart Claude Code, then run `/cinematographly:doctor`. If the commands do not appear, run
-`claude plugin details cinematographly` in a terminal and check the plugin is enabled.
-
-**Upgrading from the old `cinematography` plugin?** Uninstall it first, so two gates do not run on one call: in
-`/plugin` find the line `cinematography@<marketplace>` and uninstall it, or run
-`claude plugin uninstall cinematography@<marketplace>` in a terminal. Your settings in `~/.cinematography` are merged into `~/.cinematographly` the first time
-the gate runs; nothing is overwritten and an open job survives. `doctor` turns red while the old plugin is installed.
 
 ## Your first ten minutes (nothing is spent)
 
@@ -158,15 +165,25 @@ The gate checks every paid call, approval and export against files on your machi
 - **Uncounted tools.** Kling bills its own account. Upscale, dubbing and other tools with no price ask every time and
   are not counted toward the month.
 
-## Licence
+## Licence and pricing
 
 **Source-available, not OSI open source.** Free to use, change and use for paid client work for a studio of
 **10 people or fewer**. Count employees, working owners and partners, regular contractors and affiliates, once
 each, part-time people included: the count is the whole business, not a seat count (LICENSE, section 1). Larger
 studios need a commercial licence:
 see [`COMMERCIAL.md`](COMMERCIAL.md) or write to vladms@designupstrategyaz.xyz. You may share free copies and forks
-with the licence and notices kept; you may not sell the plugin or a paid service built mainly on it. As between you
-and the licensor, the films you make are yours; changed plugin files stay under the licence. Third-party parts keep
+with the licence and notices kept; you may not sell the plugin, host it as a paid service, or sell a subscription or bundle whose customer is paying for
+it. The recipient's own size decides whether they may use a copy you share. The licensor
+claims no ownership in the films you make (your client contracts decide who owns them); changed plugin files stay
+under the licence. Third-party parts keep
 their own licences. Full terms: [`LICENSE`](LICENSE); if this summary and LICENSE differ, LICENSE controls.
+
+**Support the project or buy a commercial licence:** [designupstrategyaz.gumroad.com](https://designupstrategyaz.gumroad.com).
+
+## Contributing and security
+
+Read [`CONTRIBUTING.md`](CONTRIBUTING.md) (contributions need a `Signed-off-by` line) and the
+[code of conduct](CODE_OF_CONDUCT.md). Report a security problem privately, as [`SECURITY.md`](SECURITY.md) says,
+never in a public issue.
 
 Cinematographly is not affiliated with Anthropic, Higgsfield, Kling, Blackmagic Design, Apple or Adobe.

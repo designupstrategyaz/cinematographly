@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security problem
+    url: https://github.com/designupstrategyaz/cinematographly/blob/main/SECURITY.md
+    about: Report it privately, as SECURITY.md says. Never in a public issue.
+  - name: Commercial licence (studios of more than 10 people)
+    url: https://github.com/designupstrategyaz/cinematographly/blob/main/COMMERCIAL.md
+    about: How to ask for one.

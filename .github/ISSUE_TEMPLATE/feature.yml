@@ -1,0 +1,19 @@
+name: Feature request
+description: Something the plugin should do for your studio.
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem in your production work
+      description: What you were trying to make, and where the plugin got in the way. Leave out client names.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help
+  - type: textarea
+    id: today
+    attributes:
+      label: How you do it today
