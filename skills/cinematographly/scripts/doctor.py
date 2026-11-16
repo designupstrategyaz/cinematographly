@@ -296,10 +296,10 @@ def check_later(home_dir: str | None = None, user_home: str | None = None) -> li
     elif _old_connectors(user_home, hd):
         out.append(row(OK, "connector", "Higgsfield connector named in the old settings; it comes across with the merge"))
     else:
-        hint = (f"; seen but not named: {', '.join(sorted(seen)[:3])} (`gate.py connectors --seen`)" if seen else "")
+        hint = (f"; seen but not named: {', '.join(sorted(seen)[:3])} (`/cinematographly:connectors --seen`)" if seen else "")
         out.append(row(AMBER, "connector", "no Higgsfield connector named yet — fine for a concept; a claude.ai "
                        "connector's paid calls will ask until it is named" + hint,
-                       "`python3 scripts/gate.py connectors --higgsfield <uuid>` (the uuid is in the tool names)"))
+                       "type `/cinematographly:connectors --higgsfield <uuid>` (the uuid is in the tool names)"))
     return out
 
 
@@ -330,6 +330,31 @@ def check_studio_answers(home_dir: str | None = None) -> list:
         out.append(row(AMBER, "rates", "the rate table cannot be read" if stale < 0 else
                        f"{stale} rate(s) undated or older than 30 days",
                        "re-read them on your account (scripts/refresh_costs.md) into <studio>/rates-override.json"))
+    out += check_template_costs()
+    return out
+
+
+def check_template_costs(cdir: str | None = None) -> list:
+    """(3.1.1) A client cost file still carrying the template's PLACEHOLDER source quotes made-up prices. The invented
+    sample `acme` is exempt."""
+    d = cdir or os.environ.get("CINE_CLIENTS") or cine_home.config_dir("clients_dir")
+    if not d or not os.path.isdir(d):
+        return []
+    out = []
+    for p in sorted(glob.glob(os.path.join(d, "costs.*.json"))):
+        slug = os.path.basename(p)[len("costs."):-len(".json")]
+        if slug.startswith("_") or slug == "acme":
+            continue
+        try:
+            src = str((json.load(open(p, encoding="utf-8")) or {}).get("source") or "")
+        except (OSError, ValueError, AttributeError):
+            out.append(row(AMBER, "costs", f"costs.{slug}.json cannot be read", "fix or remake it (scripts/refresh_costs.md)"))
+            continue
+        if src.lstrip().startswith("⛔ PLACEHOLDER"):   # the template's own marker, not any later mention of the word
+            out.append(row(AMBER, "costs", f"costs.{slug}.json still has the template's placeholder prices — a quote for "
+                                            f"{slug} would use made-up numbers",
+                           "read this account's prices off the Generate button (scripts/refresh_costs.md) and set its "
+                           "`source` to where they came from"))
     return out
 
 
@@ -338,7 +363,7 @@ def first_run(rep: dict) -> list:
     rows = rep["concept"] + rep["later"]
     has = lambda area, word: any(r["area"] == area and r["level"] == OK and word in r["msg"] for r in rows)  # noqa: E731
     return [("studio folder (/cinematographly:setup)", has("studio", "clients_dir")),
-            ("Higgsfield connector named (gate.py connectors --higgsfield <id>)", has("connector", "named")),
+            ("Higgsfield connector named (/cinematographly:connectors --higgsfield <id>)", has("connector", "named")),
             ("a client (/cinematographly:new-client, or the sample acme)", has("studio", "client profiles")),
             ("a job (/cinematographly:new-job, or /cinematographly:demo to read one first)", has("job", "open:"))]
 
@@ -446,6 +471,15 @@ def selftest() -> int:
             assert any(r["area"] == "studio" and r["level"] == AMBER and f"unanswered ({len(__import__('studio').QUESTIONS) - len(__import__('studio').OPTIONAL)})" in r["msg"] for r in sr), sr
             json.dump({"approvers": ["Sam Reyes"]}, open(os.path.join(st, "studio.json"), "w"))
             assert any(f"unanswered ({len(__import__('studio').QUESTIONS) - len(__import__('studio').OPTIONAL) - 1})" in r["msg"] for r in check_studio_answers(hd)), "an answer is counted"
+            _cd = os.path.join(td, "clients-tc"); os.makedirs(_cd)
+            _tpl = json.load(open(os.path.join(HERE, os.pardir, "clients", "costs._TEMPLATE.json"), encoding="utf-8"))
+            for _s in ("northwind", "acme", "_TEMPLATE"):        # the template itself and the sample are never flagged
+                json.dump(_tpl, open(os.path.join(_cd, f"costs.{_s}.json"), "w"))
+            json.dump({**_tpl, "source": "Generate button, 2026-11-16; PLACEHOLDER removed"},
+                      open(os.path.join(_cd, "costs.brightco.json"), "w"))
+            _tc = check_template_costs(_cd)
+            assert len(_tc) == 1 and "northwind" in _tc[0]["msg"] and _tc[0]["level"] == AMBER, \
+                ("(3.1.1) a copied template is flagged; acme and a sourced file are not", _tc)
         finally:
             os.environ.pop("CINE_STUDIO", None)
         fr = first_run({"concept": [row(OK, "studio", "clients_dir: x"), row(OK, "studio", "client profiles: acme")],

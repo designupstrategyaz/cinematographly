@@ -20,6 +20,7 @@
   "agents/cine-sfx-spotter.md",
   "agents/cine-shot-writer.md",
   "agents/cine-take-reviewer.md",
+  "commands/connectors.md",
   "commands/deliver.md",
   "commands/demo.md",
   "commands/doctor.md",

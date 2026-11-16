@@ -113,7 +113,7 @@
 |---|---|---|
 | **`CINE_CLIENTS`** | Where your client profiles live, outside the plugin. A plugin update replaces the plugin's own `clients/` folder. | `SKILL.md`; `assets/checkpoint-template.md` |
 | **`[studio history]`** | A tag on a rule's evidence: the note or proposal behind it is in a studio's own history folder, which does not ship. The date and the topic are given so that studio can find it. | `memory/README.md` |
-| **Connector settings** | Which claude.ai connector id is your Higgsfield account, and which are other services. Kept in `$CINE_HOME/connectors.json`; set with `gate.py connectors`. An unnamed connector asks before every paid call. A tool the gate does not know asks too, and Higgsfield-only tools stay gated even on a connector named as another service. | `START-HERE.md`; `hooks/hooks.json` |
+| **Connector settings** | Which claude.ai connector id is your Higgsfield account, and which are other services. Kept in `$CINE_HOME/connectors.json`; set with `/cinematographly:connectors` (`gate.py connectors`); naming one `--other` needs the person's words. An unnamed connector asks before every paid call. A tool the gate does not know asks too, and Higgsfield-only tools stay gated even on a connector named as another service. | `START-HERE.md`; `hooks/hooks.json` |
 | **`CINE_MEMORY`** | Where your studio's history lives, outside the plugin: close-out notes, proposals and your ledger. A `_cine-memory/` folder above your jobs works too. | `memory/README.md`; `references/self-evolution.md` |
 | **`CINE_HOME`** | Where the gate keeps its state. Default `~/.cinematographly`. One open job per folder. | `scripts/gate.py` |
 | **`CINE_GATE=off`** | The bypass. See section 1. | `SKILL.md` §0 |

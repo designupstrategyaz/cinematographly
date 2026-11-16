@@ -53,8 +53,28 @@ QUESTIONS = [
     ("platforms", "Where will the videos run?", False, "platforms"),
     ("ai_disclosure", "How is AI-made video disclosed for this client?", False, "ai_disclosure"),
     ("language", "Language of the videos and captions (English only in this version)?", False, None),
+    ("captions", "Are captions burned into the picture: yes, no, or decided per job?", False, None),
 ]
+CAPTIONS = ("yes", "no", "per job")
 
+
+
+# (3.1.1) the question invites words: map them to the mode letter. A bare letter still works.
+MODE_WORDS = (("S", ("still", "stills", "photo", "photos", "image", "images")),
+              ("D", ("repurpose", "re-cut", "re-cuts", "recut", "recuts", "re-edit", "reedit", "cut-down", "cutdown")),
+              ("C", ("explainer", "explainers", "editorial", "how-to", "tutorial")),
+              ("B", ("ugc", "batch", "volume", "ugc-style", "variants")),
+              ("A", ("narrative", "promo", "hero", "film", "brand film", "commercial")))
+
+
+def mode_letter(v) -> str | None:
+    """'A'..'S' for a letter or the words of the question; None when it matches no mode."""
+    s = str(v or "").strip().lower()
+    if s.upper() in MODES:
+        return s.upper()
+    hits = [letter for letter, words in MODE_WORDS
+            if any(re.search(rf"(?<![a-z]){re.escape(w)}(?![a-z])", s) for w in words)]
+    return hits[0] if len(hits) == 1 else None          # two modes in one answer is a question back, not a guess
 
 def formats() -> list:
     return sorted(json.load(open(FORMATS, encoding="utf-8"))["formats"])
@@ -68,6 +88,7 @@ def with_defaults(ans: dict) -> dict:
             v = s[sk]
             out[k] = v[0] if (k == "approver" and isinstance(v, list) and v) else v
     out.setdefault("language", "English")
+    out.setdefault("captions", "yes")
     return out
 
 
@@ -77,8 +98,9 @@ def problems(a: dict) -> list:
         P.append("slug: lower-case letters, digits and hyphens")
     if a.get("slug", "").startswith("_"):
         P.append("slug: may not start with '_' (those are templates)")
-    if a.get("default_mode") and str(a["default_mode"]).upper()[:1] not in MODES:
-        P.append("default_mode: one of A, B, C, D, S")
+    if a.get("default_mode") and mode_letter(a["default_mode"]) is None:
+        P.append("default_mode: A (one hero film), B (many short UGC-style videos), C (explainers), D (re-cuts of "
+                 "their footage) or S (stills), as the letter or in words")
     if a.get("verification_policy") and a["verification_policy"] not in studio.POLICIES:
         P.append(f"verification_policy: one of {', '.join(studio.POLICIES)}")
     appr = str(a.get("approver") or "")
@@ -90,12 +112,14 @@ def problems(a: dict) -> list:
         P.append(f"claims_category: one of {', '.join(CLAIMS)}")
     if str(a.get("language") or "English").strip().lower() not in ("english", "en", "english (us)", "english (uk)"):
         P.append("language: English only in this version")
+    if str(a.get("captions") or "yes").strip().lower() not in CAPTIONS:
+        P.append("captions: yes, no or per job")
     return P
 
 
 def render(a: dict) -> str:
     t = open(os.path.join(TEMPLATES, "_TEMPLATE.md"), encoding="utf-8").read()
-    mode = str(a["default_mode"]).upper()[:1]
+    mode = mode_letter(a["default_mode"])
     plats = a.get("platforms")
     plats = ", ".join(plats) if isinstance(plats, list) else (plats or "<the actual channels — confirm, never assume>")
     R = [("# Client Profile — <BRAND>", f"# Client Profile — {a['name']}"),
@@ -117,7 +141,8 @@ def render(a: dict) -> str:
          ("**Claims-category:** `<sleep | beauty | supplements | finance | none>`",
           f"**Claims-category:** `{a['claims_category']}`"),
          ("- **Language / captions:** <target language + diacritics; captions burned in?>",
-          f"- **Language / captions:** {a.get('language', 'English')} <captions burned in?>"),
+          f"- **Language / captions:** {a.get('language', 'English')}; captions burned in: "
+          f"{str(a.get('captions') or 'yes').strip().lower()}"),
          ("- **Platforms:** <the actual channels — confirm, never assume>", f"- **Platforms:** {plats}"),
          ("### Delivery format — `<preset name>`", f"### Delivery format — `{a['delivery_format']}`")]
     if a.get("claims_signer"):
@@ -212,6 +237,23 @@ def selftest() -> int:
         assert not P and len(files) == 3, P
         prof = open(os.path.join(cd, "northwind.md"), encoding="utf-8").read()
         assert "**Named approver:** Sam Reyes." in prof and "`per-stage-human`" in prof and "`vertical-1080`" in prof
+        assert "captions burned in: yes" in prof and "<captions burned in?>" not in prof, \
+            "(3.1.1) no placeholder is left in the language line"
+        for words, letter in (("Narrative promo", "A"), ("many short UGC-style videos", "B"), ("UGC", "B"),
+                              ("explainers", "C"), ("re-cuts of their footage", "D"), ("stills", "S"), ("b", "B")):
+            assert mode_letter(words) == letter, (words, mode_letter(words))
+        assert mode_letter("Zebra") is None and mode_letter("") is None
+        assert mode_letter("editorial stills") is None, "(3.1.1, plan review) two modes in one answer refuses"
+        for words, letter in (("photos", "S"), ("explainer", "C"), ("recut", "D")):
+            assert mode_letter(words) == letter, (words, mode_letter(words))
+        files, P = make(dict(ans, slug="capsno", captions="no"), cd)
+        assert not P and "captions burned in: no" in open(os.path.join(cd, "capsno.md"), encoding="utf-8").read(), \
+            "(3.1.1) the captions answer is what the profile says"
+        files, P = make(dict(ans, slug="wordsmode", default_mode="Narrative promo"), cd)
+        assert not P and "**Default mode:** A (" in open(os.path.join(cd, "wordsmode.md"), encoding="utf-8").read(), \
+            ("(3.1.1) a mode in words goes all the way to the profile", P)
+        files, P = make(dict(ans, slug="badmode", default_mode="Zebra"), cd)
+        assert P and any("default_mode" in x for x in P) and not os.path.exists(os.path.join(cd, "badmode.md"))
         before = {f: open(os.path.join(cd, f), "rb").read() for f in os.listdir(cd)}
         files, P = make(ans, cd)
         assert not P and {f: open(os.path.join(cd, f), "rb").read() for f in os.listdir(cd)} == before, "byte-identical"

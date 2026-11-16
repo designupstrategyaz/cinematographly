@@ -1154,7 +1154,36 @@ HOST: „Order before Friday."
 """
 
 
+def _selftest_quote_job() -> None:
+    """(3.1.1) verify_quote passes the open job to gate.quote_refusal: on a hookless home, an unchecked quote is refused
+    on a job whose transcript-checked approvals another home recorded, and accepted on a job with none."""
+    import tempfile as _tq
+    import gate as G
+    keep = {k: getattr(G, k) for k in ("active_job", "hookless", "quote_in_transcript")}
+    with _tq.TemporaryDirectory() as gd:
+        class _J:
+            gate_dir = gd
+            rows: list = []
+
+            def approvals(self):
+                return self.rows
+        j = _J()
+        try:
+            G.active_job = lambda *a_, **k_: (j, "")
+            G.hookless = lambda: True
+            G.quote_in_transcript = lambda q: "no-transcript"
+            j.rows = [{"stage": "concept", "verified": "transcript"}]
+            why = verify_quote("these words were never checked")
+            assert why and "already has approvals checked" in why, ("another home's checked job refuses", why)
+            j.rows = [{"stage": "concept", "verified": "UNVERIFIED hookless"}]
+            assert verify_quote("these words were never checked") is None, "a hookless-only job still records"
+        finally:
+            for k, v in keep.items():
+                setattr(G, k, v)
+
+
 def selftest() -> int:
+    _selftest_quote_job()
     import tempfile as _tfr
     os.environ.setdefault("CINE_TRANSCRIPT_ROOT", _tfr.gettempdir())   # (3.1) the tests' transcripts live in temp
     ok = True

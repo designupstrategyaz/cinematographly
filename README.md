@@ -144,7 +144,8 @@ than English; show a draft before its contact sheet; use Higgsfield `motion_cont
 
 The gate checks every paid call, approval and export against files on your machine. It does not stop:
 
-- **Hand edits.** Anyone with a shell, the agent included, can edit a checkpoint, `studio.json` or the spend records,
+- **Hand edits.** Anyone with a shell, the agent included, can edit a checkpoint, `studio.json`, `connectors.json` or the
+  spend records, set the connector environment variables,
   or point a command at a different home folder (`CINE_HOME`). Each shows in the session. A job that already has a
   transcript-checked approval refuses an unchecked one from anywhere. Raising a budget or the monthly ceiling through the plugin needs a person's words.
 - **Parallel calls.** Spend is counted when a call returns. Several calls sent at once are each checked against the same

@@ -308,6 +308,9 @@ def fail_closed_suite(td: str) -> None:
     gate_h = [(m, h) for m, h in pre if is_gate(h)]
     other_h = [(m, h) for m, h in pre if not is_gate(h)]
     post_h = [h for ev in ("PostToolUse", "SessionStart") for e in hooks.get(ev) or [] for h in e["hooks"]]
+    _cc = open(os.path.join(plugin, "commands", "connectors.md"), encoding="utf-8").read().split("\n---", 1)[0]
+    check("(3.1.1) /cinematographly:connectors runs only when the person types it, with no pre-approved tools",
+          "\ndisable-model-invocation: true" in _cc and "allowed-tools" not in _cc, _cc)
     check("hooks.json registers four gate.py PreToolUse entries", len(gate_h) == 4, str(len(gate_h)))
     check('every gate entry sets onFailure to "block" (a hook that cannot start, or times out, blocks)',
           all(h.get("onFailure") == "block" for _, h in gate_h), str([h.get("onFailure") for _, h in gate_h]))
@@ -1191,7 +1194,31 @@ def main() -> int:
         dec, why, _ = hook(env_n, HF, {"model": "nano_banana_pro", "prompt": "a roof"})
         check("with no connector settings at all, your Higgsfield connector's generate_image asks (never passes silently)",
               dec == "ask", why)
-        rc, out, err = run([GATE, "connectors", "--higgsfield", SAMPLE, "--other", SAMPLE_OTHER], env_n)
+        rc, out, err = run([GATE, "connectors", "--other", SAMPLE_OTHER], env_n)
+        check("(3.1.1) `--other` for a fresh uuid without the person's words is refused", rc == 1 and "owner's words" in err,
+              out + err)
+        _tpc = os.path.join(env_n["CINE_HOME"], "transcript-connectors.jsonl")
+        open(_tpc, "w").write(json.dumps({"type": "user", "message": {"role": "user",
+                                                                       "content": "that one is Figma, let it through"}}) + "\n"
+                                                                       + json.dumps({"type": "user", "message": {"role": "user", "content": f"{SAMPLE_OTHER[:8]} is Figma, let it through"}}) + "\n")
+        open(os.path.join(env_n["CINE_HOME"], "transcript-path"), "w").write(_tpc)
+        rc, out, err = run([GATE, "connectors", "--other", SAMPLE_OTHER, "--quote", "not what they said"], env_n)
+        check("(3.1.1) ...and with a quote that is not in the transcript", rc == 1 and "owner's words" in err, out + err)
+        rc, out, err = run([GATE, "connectors", "--other", SAMPLE_OTHER, "--quote", "that one is Figma, let it through"], env_n)
+        check("(3.1.1 build review) words in the transcript that do not name the connector are refused",
+              rc == 1 and "naming it" in err, out + err)
+        _seen = os.path.join(env_n["CINE_HOME"], "seen-connectors.json")
+        _seen0 = open(_seen).read() if os.path.isfile(_seen) else None
+        json.dump({SAMPLE_OTHER: {"tools": [f"mcp__{SAMPLE_OTHER}__shorts_studio_create"], "last": "x"}}, open(_seen, "w"))
+        rc, out, err = run([GATE, "connectors", "--other", SAMPLE_OTHER, "--quote", f"{SAMPLE_OTHER[:8]} is Figma, let it through"], env_n)
+        check("(3.1.1) a uuid seen serving a Higgsfield-only tool is refused as --other, even with the words",
+              rc == 1 and "only Higgsfield serves" in err, out + err)
+        if _seen0 is None:
+            os.remove(_seen)
+        else:
+            open(_seen, "w").write(_seen0)
+        rc, out, err = run([GATE, "connectors", "--higgsfield", SAMPLE, "--other", SAMPLE_OTHER, "--quote",
+                            f"{SAMPLE_OTHER[:8]} is Figma, let it through"], env_n)
         dec, why, _ = hook(env_n, HF, {"model": "nano_banana_pro", "prompt": "a roof"})
         check("`gate.py connectors --higgsfield` writes the setting, and the call is gated again (no job → deny)",
               rc == 0 and dec == "deny" and "No production job" in why, out + err + why)
@@ -1201,6 +1228,7 @@ def main() -> int:
         dec, why, _ = hook(env_n, HF, {"model": "nano_banana_pro", "prompt": "a roof"})
         check("(v2.61.0) moving your Higgsfield connector to --other without the owner's words is refused, and it stays gated",
               rc == 1 and "needs the owner's words" in err and dec == "deny", out + err + why)
+        os.remove(os.path.join(env_n["CINE_HOME"], "transcript-path")); os.remove(_tpc)   # later steps run without it
         rc, out, err = run([GATE, "connectors", "--higgsfield", "not-a-uuid"], env_n)
         check("`gate.py connectors` refuses something that is not a connector uuid", rc == 2 and "REFUSED" in err, out + err)
         os.remove(os.path.join(env_n["CINE_HOME"], "connectors.json"))

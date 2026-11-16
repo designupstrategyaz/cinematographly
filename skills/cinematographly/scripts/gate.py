@@ -3536,7 +3536,7 @@ def decide(tool: str, tool_input, commit: bool = True, commit_previz: bool = Tru
             return {"decision": "allow", "reason": "", "context": ""}
         ck, other_note = "higgsfield", (f"{tool}: the connector settings name this uuid as another service, but only "
                                         f"Higgsfield serves this tool, so it is gated as Higgsfield (v2.61.0). If the "
-                                        f"settings are wrong: `python3 scripts/gate.py connectors --higgsfield <uuid>`.")
+                                        f"settings are wrong: `/cinematographly:connectors` or `python3 scripts/gate.py connectors --higgsfield <uuid>`.")
     always = DENY_ALWAYS_RE.match(tool or "")
     if always:
         return {"decision": "deny",
@@ -3581,8 +3581,8 @@ def decide(tool: str, tool_input, commit: bool = True, commit_previz: bool = Tru
         return {"decision": "ask",
                 "reason": f"{tool}: connector {cu} is not in the connector settings, so the gate cannot tell whether this "
                           f"call spends on your Higgsfield account or is another service's tool of the same name. "
-                          f"If it is Higgsfield: `python3 scripts/gate.py connectors --higgsfield {cu}`. If not: "
-                          f"`python3 scripts/gate.py connectors --other {cu}`. Until then every such call asks.",
+                          f"If it is Higgsfield: `/cinematographly:connectors --higgsfield {cu}` (or `python3 scripts/gate.py connectors --higgsfield {cu}`). If not: "
+                          f"`/cinematographly:connectors --other {cu} --quote \"<your words, naming {cu[:8]}>\"` (or `python3 scripts/gate.py connectors --other {cu} --quote …`). Until then every such call asks.",
                 "context": ""}
     if os.environ.get("CINE_GATE", "").lower() == "off":
         bypass_log(f"CINE_GATE=off {tool} {json.dumps(tool_input, ensure_ascii=False, default=str)[:400]}")
@@ -5872,13 +5872,25 @@ def cmd_connectors(a) -> int:
             if not re.fullmatch(UUID_SRC, u):
                 print(f"REFUSED: {u!r} is not a connector uuid (8-4-4-4-12 hex)", file=sys.stderr)
                 return 2
-            if kind == "other" and u in current_hf:
-                # (v2.61.0) taking the gate off a Higgsfield connector is the owner's call, in their own words
+            if kind == "other":
+                # (3.1.1, plan review) naming ANY connector "other" lets its generate_image/video/audio through
+                # ungated and uncounted, so it is always the person's call in their own words (v2.61.0 required this
+                # only when moving it off the Higgsfield list). A connector already seen serving a tool only
+                # Higgsfield serves is Higgsfield: refused outright.
+                _hf_seen = sorted({str(x).split("__")[-1] for x in ((seen_connectors().get(u) or {}).get("tools") or [])
+                                   if higgsfield_only(str(x).split("__")[-1])})
+                if _hf_seen:
+                    print(f"REFUSED: {u} was seen serving {', '.join(_hf_seen)}, which only Higgsfield serves, so it is "
+                          f"your Higgsfield connector: name it with --higgsfield, never --other.", file=sys.stderr)
+                    return 1
                 q = (getattr(a, "quote", None) or "").strip()
-                if len(q.split()) < 2 or quote_in_transcript(q) != "verified":
-                    print(f"REFUSED: {u} is named as your Higgsfield connector. Moving it to --other takes the gate "
-                          f"off it, so it needs the owner's words: --quote \"<what they typed>\" (checked against "
-                          f"this session's transcript).", file=sys.stderr)
+                if len(q.split()) < 2 or u[:8] not in q.lower() or quote_in_transcript(q) != "verified":
+                    # (3.1.1 build review) the words must name this connector (its first 8 characters), so an earlier
+                    # "yes please" cannot be reused for a connector the person never mentioned
+                    print(f"REFUSED: naming {u} --other lets its generate tools through with no gate"
+                          + (" (it is named as your Higgsfield connector now)" if u in current_hf else "") +
+                          f", so it needs the owner's words naming it: --quote \"<what they typed, including {u[:8]}>\" (checked against this "
+                          f"session's transcript).", file=sys.stderr)
                     return 1
             for k in ("higgsfield", "other"):
                 data[k] = [x for x in (data.get(k) or []) if x != u]
@@ -7673,8 +7685,9 @@ def main() -> int:
     sub.add_parser("hook"); sub.add_parser("session"); sub.add_parser("close")
     cn_ = sub.add_parser("connectors", help="name your Higgsfield connector's uuid (and other services' uuids); list them")
     cn_.add_argument("--higgsfield", nargs="*", help="uuid(s) of your claude.ai Higgsfield connector")
-    cn_.add_argument("--other", nargs="*", help="uuid(s) of other claude.ai connectors (e.g. Figma) the gate should let through")
-    cn_.add_argument("--quote", help="the owner's words, needed to move a uuid out of --higgsfield (v2.61.0)")
+    cn_.add_argument("--other", nargs="*", help="uuid(s) of other claude.ai connectors (e.g. Figma) the gate should let through; needs --quote (3.1.1)")
+    cn_.add_argument("--quote", help="the owner's words, typed earlier in this session and naming the connector's first 8 characters; "
+                     "needed for every --other (3.1.1)")
     cn_.add_argument("--seen", action="store_true", help="(3.0.0) also list unnamed connectors the gate asked about")
     ph_ = sub.add_parser("posthook", help="PostToolUse: record a generate request the vendor accepted (the duplicate-spend guard)")
     ph_.add_argument("--failed", action="store_true", help="PostToolUseFailure: the call failed or timed out; record it as "

@@ -3,7 +3,7 @@
 # Cinematographly · project id cgly-3f9c1e · see LICENSE and NOTICE
 """demo.py — a finished, text-only sample job to read before your first real one. (3.1)
 
-  demo.py [--jobs-dir DIR]      # makes acme-NNNNN-demo-spring-tuneup in your jobs folder
+  demo.py [--jobs-dir DIR]      # makes acme-00000-demo-spring-tuneup in your jobs folder (never takes a real job number)
   demo.py --selftest
 
 The job is made by new_job.py for the invented sample client `acme` (concept only: budget 0, no approvals), then the
@@ -22,7 +22,7 @@ SLUG = "demo-spring-tuneup"
 
 
 def make(jobs_dir: str) -> tuple[str, list]:
-    job, probs = new_job.make("acme", SLUG, jobs_dir, mode="A", approver="Sam Reyes")
+    job, probs = new_job.make("acme", SLUG, jobs_dir, mode="A", approver="Sam Reyes", number=0)   # (3.1.1) acme-00000
     if probs:
         return "", probs
     for root, _dirs, files in os.walk(SAMPLE):
@@ -48,7 +48,7 @@ def selftest() -> int:
             for k, v in old.items():
                 if v is not None:
                     os.environ[k] = v
-        assert not p and os.path.basename(job).endswith(SLUG), p
+        assert not p and os.path.basename(job) == f"acme-00000-{SLUG}", (p, job)
         for rel in ("README-DEMO.md", "00-brief/DEVELOPMENT.md", "01-script/SCRIPT-spring-tuneup-v1.md",
                     "01-script/SHOTLIST.md", "99-costs/ESTIMATE.md", "00-brief/CHECKPOINT.md"):
             assert os.path.isfile(os.path.join(job, rel)), rel

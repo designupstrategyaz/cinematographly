@@ -15,7 +15,7 @@ numbered after the client's existing jobs in --jobs-dir (default: the configured
 A profile whose approver is a role ("the shop's owner") needs --approver with a person's name.
 """
 from __future__ import annotations
-import argparse, os, re, subprocess, sys, tempfile
+import argparse, os, re, shutil, subprocess, sys, tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -52,7 +52,7 @@ def next_id(jobs_dir: str, client: str, slug: str) -> str:
     if os.path.isdir(jobs_dir):
         for d in os.listdir(jobs_dir):
             m = re.match(rf"^{re.escape(client)}-(\d{{5}})-", d)
-            if m:
+            if m:          # (3.1.1) the demo is numbered 00000 and numbering starts at 1001, so it never counts
                 n = max(n, int(m.group(1)))
     return f"{client}-{n + 1:05d}-{slug}"
 
@@ -96,7 +96,7 @@ def checkpoint(job_id: str, client: str, f: dict, mode: str, approver: str, fmt:
 
 
 def make(client: str, slug: str, jobs_dir: str, mode: str | None = None, approver: str | None = None,
-         fmt: str | None = None) -> tuple[str, list]:
+         fmt: str | None = None, number: int | None = None) -> tuple[str, list]:
     """Returns (job path, problems). Writes nothing when there is a problem."""
     probs: list = []
     if not re.match(r"^[a-z0-9][a-z0-9-]{0,40}$", slug or ""):
@@ -128,7 +128,7 @@ def make(client: str, slug: str, jobs_dir: str, mode: str | None = None, approve
     probs += sw_probs
     if probs:
         return "", probs
-    job_id = next_id(jobs_dir, client, slug)
+    job_id = f"{client}-{number:05d}-{slug}" if number is not None else next_id(jobs_dir, client, slug)
     job = os.path.join(jobs_dir, job_id)
     for d in LAYOUT:
         os.makedirs(os.path.join(job, d), exist_ok=True)
@@ -142,6 +142,13 @@ def selftest() -> int:
     py = sys.executable
     with tempfile.TemporaryDirectory() as td:
         jobs = os.path.join(td, "jobs"); os.makedirs(jobs)
+        # (3.1.1) the demo job (numbered 00000) never pushes a real job's number; a REAL job whose slug starts with
+        # "demo-" still counts (plan review: skipping by slug would hand out a duplicate number)
+        os.makedirs(os.path.join(jobs, "acme-00000-demo-spring-tuneup"))
+        assert next_id(jobs, "acme", "x") == "acme-01001-x", next_id(jobs, "acme", "x")
+        os.makedirs(os.path.join(jobs, "acme-01005-demo-reel"))
+        assert next_id(jobs, "acme", "x") == "acme-01006-x", next_id(jobs, "acme", "x")
+        shutil.rmtree(os.path.join(jobs, "acme-00000-demo-spring-tuneup")); shutil.rmtree(os.path.join(jobs, "acme-01005-demo-reel"))
         env = {**os.environ, "CINE_HOME": os.path.join(td, "home")}
         env.pop("CINE_CLIENTS", None); os.environ.pop("CINE_CLIENTS", None)
         job, p = make("acme", "first-promo", jobs, mode="A", approver="Sam Reyes")
