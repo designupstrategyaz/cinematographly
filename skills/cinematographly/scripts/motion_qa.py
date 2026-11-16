@@ -260,7 +260,7 @@ def _plan(prompt: str | None) -> dict:
             "enter": str(fm.get("enter") or ""), "exit": str(fm.get("exit") or ""),
             "join": str(fm.get("join") or ""), "cut": fm.get("cut"), "track": str(fm.get("track") or ""),
             "model": str(fm.get("model") or ""), "ramp": str(fm.get("ramp") or ""),
-            "type": str(fm.get("type") or "")}
+            "type": str(fm.get("type") or ""), "prelap": str(fm.get("prelap") or "")}
     try:
         cut = float(fm.get("cut")) if fm.get("cut") not in (None, "") else None
     except (TypeError, ValueError):

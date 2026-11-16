@@ -4,7 +4,7 @@
     "name": "Design UpStrategy AZ LLC"
   },
   "metadata": {
-    "description": "Cinematographly — a Claude Code plugin for short-form AI video, script to export, with a spend gate on every paid call"
+    "description": "Cinematographly — a plugin and agent skill for short-form AI video, script to export, for Claude Code, Claude, Cursor and ChatGPT; in Claude Code a spend gate checks every paid call"
   },
   "plugins": [
     {

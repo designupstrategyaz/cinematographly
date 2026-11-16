@@ -424,6 +424,8 @@ RULE8_DIRECT = {
     "ApplyFairlightPresetToCurrentTimeline": "Fairlight", "InsertAudioToCurrentTrackAtPlayhead": "Fairlight",
     "SetVoiceIsolationState": "Fairlight",
 }
+# (3.2.0) a clip's audio properties are Fairlight work too: SetProperty/SetProperties with any of these keys
+RULE8_AUDIO_KEY_RE = re.compile(r"^Audio(Volume|Pan|Pitch|VoiceIsolation|DialogueLeveler)\w*$")
 RULE8_SOURCES = {"Fusion", "GetFusionCompByIndex", "GetFusionCompByName", "GetFusionComp", "GetCurrentComp",
                  "FontManager"}                  # calls whose result is a Fusion object
 RULE8_FREE = {"fusion", "comp", "fu"}            # names Fusion's own console injects
@@ -695,6 +697,21 @@ def _rule8_problems(script: str) -> list:
                      for x in _strs(v)) or \
         any(isinstance(x, ast.Constant) and isinstance(x.value, str) and x.value.strip().lower() == "fusion"
             and id(x) not in docs for x in ast.walk(tree))
+    in_reads = {id(y) for c_ in ast.walk(tree) if isinstance(c_, ast.Call) and isinstance(c_.func, ast.Attribute)
+                and c_.func.attr.startswith(RULE8_READ_PREFIX)
+                for a_ in list(c_.args) + [k_.value for k_ in c_.keywords] for y in ast.walk(a_)}
+    audio_named = any(isinstance(x, ast.Constant) and isinstance(x.value, str) and RULE8_AUDIO_KEY_RE.match(x.value)
+                      and id(x) not in in_reads for x in ast.walk(tree))   # (3.2.0) named outside a read
+    dict_keys, dict_unread = {}, set()                       # (3.2.0) every dict literal bound to a name, any scope
+    for x in ast.walk(tree):
+        if isinstance(x, ast.Assign) and isinstance(x.value, ast.Dict):
+            ks = {k.value for k in x.value.keys if isinstance(k, ast.Constant) and isinstance(k.value, str)}
+            for t_ in x.targets:
+                if isinstance(t_, ast.Name):
+                    dict_keys.setdefault(t_.id, set()).update(ks)
+                    if any(k is None or not (isinstance(k, ast.Constant) and isinstance(k.value, str))
+                           for k in x.value.keys):
+                        dict_unread.add(t_.id)
     for sc, nodes in scopes.items():
         for n in nodes:
             if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute):
@@ -704,6 +721,34 @@ def _rule8_problems(script: str) -> list:
                 elif a[:1].isupper() and not a.startswith(RULE8_READ_PREFIX) and a not in RULE8_READ_NAMES \
                         and tnt(n.func.value, sc):
                     found.append(f".{a}() on a Fusion object — a Fusion write (line {n.lineno})")
+                elif a in ("SetProperty", "SetProperties"):
+                    keys = {x.value for arg in list(n.args) + [k.value for k in n.keywords] for x in ast.walk(arg)
+                            if isinstance(x, ast.Constant) and isinstance(x.value, str)}
+                    for arg in list(n.args) + [k.value for k in n.keywords if k.arg is None]:   # P, or **P
+                        if isinstance(arg, ast.Name) and isinstance(known.get(arg.id), dict):
+                            keys |= {k for k in known[arg.id] if isinstance(k, str)}
+                        if isinstance(arg, ast.Name):
+                            keys |= dict_keys.get(arg.id, set())
+                    aud = sorted(k for k in keys if RULE8_AUDIO_KEY_RE.match(k))
+                    first = n.args[0] if n.args else None
+                    opaque = (a == "SetProperty" and not isinstance(first, ast.Constant)) or \
+                             (a == "SetProperties" and not isinstance(first, ast.Dict)
+                              and not (isinstance(first, ast.Name) and isinstance(known.get(first.id), dict))) or \
+                             (a == "SetProperties" and isinstance(first, ast.Dict)        # {**P} or {k: v}
+                              and any((k is None and not (isinstance(v, ast.Name) and v.id in dict_keys
+                                                          and v.id not in dict_unread))
+                                      or (k is not None and not isinstance(k, ast.Constant))
+                                      for k, v in zip(first.keys, first.values)))
+                    if isinstance(first, ast.Dict):
+                        for k, v in zip(first.keys, first.values):
+                            if k is None and isinstance(v, ast.Name):
+                                aud += sorted(x for x in dict_keys.get(v.id, set()) if RULE8_AUDIO_KEY_RE.match(x))
+                    if aud:
+                        found.append(f"{a}() sets {', '.join(aud)} — a clip's audio is Fairlight work, done by "
+                                     f"computer control (line {n.lineno})")
+                    elif opaque and audio_named:
+                        found.append(f"{a}() with a key the gate cannot read, in a script that names a clip-audio "
+                                     f"property — a clip's audio is Fairlight work (line {n.lineno})")
                 elif a in ("AddEffect", "AddTransition") and fusion_lit:
                     found.append(f"{a}() in a script that names a Fusion item — a Fusion effect or transition is "
                                  f"Fusion work (line {n.lineno})")
@@ -6981,9 +7026,26 @@ def _selftest_v249() -> None:
         "PLACE = False\ndef _p(tl):\n    tl.InsertFusionTitleIntoTimeline('Text+')\nif PLACE:\n    _p(timeline)": False,
         "PLACE = True\ndef _p(tl):\n    tl.InsertFusionTitleIntoTimeline('Text+')\nif PLACE:\n    _p(timeline)": True,
         "PLAN = []\nfor p in PLAN:\n    item.GetFusionCompByIndex(1).AddTool('Background')": False,
+        # (3.2.0) a clip's audio properties are Fairlight work: set by computer control, never by script
+        "item.SetProperty('AudioPan', -40)": True,
+        "item.SetProperties({'AudioVolume': -6.0, 'Pan': 0})": True,
+        "P = {'AudioPitchSemiTones': 2}\nitem.SetProperties(P)": True,
+        "item.SetProperties({'ZoomX': 1.1, 'Pan': 12})": False,          # picture Pan is not audio
+        "result = item.GetProperty('AudioPan')": False,                  # a read stays open
+        "for k, v in {'AudioPan': -40}.items():\n    item.SetProperty(k, v)": True,     # a key from a loop
+        "P = {'AudioVolume': -6}\nitem.SetProperties(**P)": True,
+        "def apply(item):\n    props = {'AudioPan': -22}\n    item.SetProperties(props)\napply(item)": True,
+        "P = {'AudioPan': -22}\nitem.SetProperties({**P})": True,
+        "for k in ['AudioPan']:\n    item.SetProperties({k: -22})": True,
+        "P = {'ZoomX': 1.1, 'Pan': 12}\nx = item.GetProperty('AudioPan')\nitem.SetProperties({**P})": False,  # read whole
+        "x = item.GetProperty(name='AudioPan')\nfor k, v in {'ZoomX': 1.1}.items():\n    item.SetProperty(k, v)": False,
+        "for k, v in {'ZoomX': 1.1}.items():\n    item.SetProperty(k, v)": False,       # no audio key named anywhere
+        "v = item.GetProperty('AudioPan')\nfor k, x in {'ZoomX': 1.1}.items():\n    item.SetProperty(k, x)": False,  # a read
     }
     for src_, bad_ in R8.items():
         assert bool(_rule8_problems(src_)) is bad_, (src_, _rule8_problems(src_))
+    _fn = "def apply(item):\n    props = {'AudioPan': -22}\n    item.SetProperties(props)\napply(item)"
+    assert any("sets AudioPan" in r_ for r_ in _rule8_problems(_fn)), _rule8_problems(_fn)   # (3.2.0) named, not opaque
     _con = open(os.path.join(HERE, "resolve-production-console.py"), encoding="utf-8").read()
     assert _rule8_problems(_con) == [], _rule8_problems(_con)[:3]           # the shipped console, toggles as shipped
     assert _rule8_problems(_con.replace("\nPLACE_TITLES = False", "\nPLACE_TITLES = True", 1))

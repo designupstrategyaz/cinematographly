@@ -113,6 +113,13 @@ TH = {
                                # share of the frame and casts no vote either way
     "key_side": 6.0,           # L* difference between the two halves (face or frame) that names a key side
     "warm": 6.0, "cool": -4.0, # mean b* for a warm / cool picture
+    "b_step": 6.0,             # (3.2.0) a b* step of the NEUTRAL pixels across a join between ALIKE pictures that
+                               # reads as a warm/cool mismatch [assumed]. The whole-frame mean follows content (a
+                               # steel sink against a plate of food); the near-neutral pixels follow the light
+    "neutral_share": 0.30,     # (3.2.0) the lowest-chroma 30 % of the pixels brighter than L* 35 are "neutral";
+                               # under a colour cast they carry the cast, which is the point [assumed]
+    "neutral_max": 10.0,       # (3.2.0) …but when BOTH sides' neutral pixels sit above this chroma, neither frame has
+                               # a neutral surface (wood against wood, skin filling the frame): not read [assumed]
 }
 TH_TAG = "[assumed · house values, 2026-10-25 — calibrate on confirmed reads]"
 
@@ -595,6 +602,19 @@ def camera_path(path: str, a: float, b: float, info: dict) -> dict:
     return out
 
 
+def neutral_b(L, a, b) -> tuple:
+    """(3.2.0) The light's warm/cool, read off the near-neutral pixels (whites, greys, steel): the mean b* of the
+    lowest-chroma share of the pixels brighter than L* 35, and that share's chroma ceiling. (None, None) when too
+    little of the frame is bright enough."""
+    np, _ = _need()
+    m = L > 35.0
+    if int(m.sum()) < 0.05 * L.size:
+        return None, None
+    ch = np.hypot(a[m], b[m])
+    thr = float(np.percentile(ch, TH["neutral_share"] * 100))
+    return float(b[m][ch <= thr].mean()), thr
+
+
 def light_stats(fr, face) -> dict:
     """Brightness, contrast, key side (on the face when one is found), warm/cool, saturation."""
     np, cv2 = _need()
@@ -631,7 +651,9 @@ def light_stats(fr, face) -> dict:
     bm = float(b.mean())
     temp = "warm" if bm >= TH["warm"] else "cool" if bm <= TH["cool"] else "neutral"
     hsv = cv2.cvtColor(fr, cv2.COLOR_BGR2HSV)
-    return {"L_mean": round(mean, 1), "contrast": round(contrast, 1), "key": style, "key_side": key, "key_on": on,
+    bn, nc = neutral_b(L, a, b)
+    return {"b_neutral": None if bn is None else round(bn, 1), "neutral_chroma": None if nc is None else round(nc, 1),
+            "L_mean": round(mean, 1), "contrast": round(contrast, 1), "key": style, "key_side": key, "key_on": on,
             "side_diff": round(right - left, 1), "temp": temp, "b_mean": round(bm, 1), "a_mean": round(float(a.mean()), 1),
             "sat": round(float(hsv[..., 1].mean()) / 255.0, 3)}
 
@@ -713,6 +735,34 @@ def load_cuts(src: str, video: str, info: dict) -> tuple:
     return [(edges[i], edges[i + 1]) for i in range(len(edges) - 1)], f"cut list {os.path.basename(src)}", None
 
 
+NOTE_FLAGS = ("warm/cool step",)   # (3.2.0) [assumed] checks that report but do not make `qa` exit 1 until calibrated
+
+
+def light_flags(co: dict, ci: dict, lo: dict, li: dict, sim: float) -> list:
+    """The light across one join, as flags, each only between ALIKE pictures (one place, or one look): colour
+    (ΔE), exposure (luma), warm/cool (the b* step, 3.2.0) and the key side. The key side is compared only when both
+    sides were measured the same way, both on a face or both on the frame's thirds (3.2.0): a face crop against the
+    frame's thirds compares two different things. `co`/`ci` from colour_stats, `lo`/`li` from light_stats."""
+    flags = []
+    if sim < TH["alike"]:
+        return flags
+    de = math.sqrt(sum((x - y) ** 2 for x, y in zip(co["lab"], ci["lab"])))
+    if de >= TH["delta_e_grade"]:
+        flags.append(f"colour jump between alike pictures (ΔE {de:.1f})")
+    if abs(ci["luma"] - co["luma"]) >= TH["luma_jump"]:
+        flags.append(f"exposure jump between alike pictures ({ci['luma'] - co['luma']:+.0f} luma)")
+    bo, bi = lo.get("b_neutral"), li.get("b_neutral")
+    no_neutral = all((x.get("neutral_chroma") or 0.0) > TH["neutral_max"] for x in (lo, li))
+    if bo is not None and bi is not None and not no_neutral:
+        bs = float(bi) - float(bo)
+        if abs(bs) >= TH["b_step"]:
+            flags.append(f"warm/cool step between alike pictures ({bs:+.1f} b* on the neutral pixels, "
+                         f"{'warmer' if bs > 0 else 'cooler'} after the cut)")
+    if {lo["key_side"], li["key_side"]} == {"left", "right"} and lo.get("key_on") == li.get("key_on"):
+        flags.append(f"the key light changes side between alike pictures ({lo['key_side']} → {li['key_side']})")
+    return flags
+
+
 def join_at(video: str, t: float, info: dict, casc, width: int = 480) -> dict:
     """Everything measured at one cut."""
     np, cv2 = _need()
@@ -746,15 +796,13 @@ def join_at(video: str, t: float, info: dict, casc, width: int = 480) -> dict:
     sdir = "n/a"
     if sb and sa and abs(sb["vx"]) >= TH["subject_v"] and abs(sa["vx"]) >= TH["subject_v"]:
         sdir = "kept" if (sb["vx"] > 0) == (sa["vx"] > 0) else "flipped"
-    flags = []
-    if sim >= TH["alike"] and de >= TH["delta_e_grade"]:
-        flags.append(f"colour jump between alike pictures (ΔE {de:.1f})")
-    if sim >= TH["alike"] and abs(ci["luma"] - co["luma"]) >= TH["luma_jump"]:
-        flags.append(f"exposure jump between alike pictures ({ci['luma'] - co['luma']:+.0f} luma)")
+    flags = light_flags(co, ci, lo, li, sim)
+    notes = [f for f in flags if f.startswith(NOTE_FLAGS)]            # (3.2.0) uncalibrated: reported, never an exit
+    if sim >= TH["alike"] and (lo.get("b_neutral") is None or li.get("b_neutral") is None):
+        notes.append("warm/cool not measured: a frame too dark to read the light")
+    flags = [f for f in flags if not f.startswith(NOTE_FLAGS)]
     if sdir == "flipped":
         flags.append("the subject's screen direction flips")
-    if sim >= TH["alike"] and {lo["key_side"], li["key_side"]} == {"left", "right"}:
-        flags.append(f"the key light changes side between alike pictures ({lo['key_side']} → {li['key_side']})")
     return {"t": round(t, 3), "t_out": round(before[-1][0], 3), "t_in": round(after[0][0], 3),
             "luma_out": round(co["luma"], 1), "luma_in": round(ci["luma"], 1),
             "luma_jump": round(ci["luma"] - co["luma"], 1), "lab_out": co["lab"], "lab_in": ci["lab"],
@@ -764,7 +812,10 @@ def join_at(video: str, t: float, info: dict, casc, width: int = 480) -> dict:
             "subj_before": sb, "subj_after": sa, "screen_dir": sdir,
             "pos_out": po, "pos_in": pi, "pos_method": pm, "eye_shift": eye,
             "key_side_out": lo["key_side"], "key_side_in": li["key_side"], "temp_out": lo["temp"], "temp_in": li["temp"],
-            "eye_jump": (eye is not None and eye >= TH["eye_jump"]), "flags": flags}
+            "b_step": (round(li["b_neutral"] - lo["b_neutral"], 1) if li.get("b_neutral") is not None
+                       and lo.get("b_neutral") is not None else None),
+            "key_on_out": lo.get("key_on"), "key_on_in": li.get("key_on"),
+            "eye_jump": (eye is not None and eye >= TH["eye_jump"]), "flags": flags, "notes": notes}
 
 
 def _count(xs) -> dict:
@@ -850,9 +901,10 @@ def template(joins_path: str, out_path: str | None = None) -> str:
                                      "light": {k: (r.get("light") or {}).get(k) for k in ("key", "key_side", "temp")},
                                      "dof": (r.get("composition") or {}).get("dof")}} for r in d["shots"]],
             "cuts": [{"n": j["n"], "from": j["from"], "to": j["to"], "relation": "", "match": [],
-                      "axis": "", "screen_direction": "", "eyeline": "", "carries": [], "changes": [],
+                      "axis": "", "cross_line": "", "screen_direction": "", "eyeline": "", "carries": [], "changes": [],
                       "continuity_error": "", "notes": "",
-                      "_measured": {k: j.get(k) for k in ("delta_e", "look", "screen_dir", "eye_shift", "flags")}}
+                      "_measured": {**{k: j.get(k) for k in ("delta_e", "look", "screen_dir", "eye_shift", "flags")},
+                                    "light_notes": j.get("notes") or []}}
                      for j in d["cuts"]],
             "_how": ("characters: [{id, screen, depth, gaze, facing, motion, expr, intensity, turn}] · props: "
                      "[{id, holder, state}] · camera: blank to accept the measured category, or the category you see · "
@@ -863,6 +915,24 @@ def template(joins_path: str, out_path: str | None = None) -> str:
     with open(p, "w", encoding="utf-8") as fh:
         json.dump(form, fh, indent=1, ensure_ascii=False)
     return p
+
+
+CROSS_LINE = {"", "meant"}   # (3.2.0) a cut's crossing of the line is meant: the screen shows the camera cross, or
+                             # the shot's blocking spec sets `camera.cross_line` (blocking.py)
+
+
+def axis_questions(rd: dict) -> list:
+    """(3.2.0) One question per cut inside one scene that the read marks `axis: crossed` and does not mark
+    `cross_line: meant`. Screen side and facing are NOT compared across shots: a wide and a close-up legitimately
+    put one person on different sides. A question for the director, never a block: the read can be wrong."""
+    Q = []
+    for c in rd.get("cuts") or []:
+        if c.get("axis") == "crossed" and c.get("relation") in ("same-scene", "return") \
+                and (c.get("cross_line") or "") != "meant":
+            Q.append(f"C{c.get('n')} (S{c.get('from')}→S{c.get('to')}): the read says this cut crosses the 180° line "
+                     f"inside one scene. Meant? Show the camera crossing on screen, or set `cross_line: meant` (and "
+                     f"`camera.cross_line` in the shot's blocking spec); otherwise the screen sides swap for the viewer")
+    return Q
 
 
 def _joins_for(read: dict, read_path: str) -> dict:
@@ -966,6 +1036,10 @@ def validate(read_path: str) -> tuple:
         for k in ("relation", "axis", "screen_direction", "eyeline"):
             if c.get(k) not in V[k]:
                 E.append(f"C{n}: {k} {c.get(k)!r} not in {sorted(V[k])}")
+        if (c.get("cross_line") or "") not in CROSS_LINE:           # (3.2.0) optional; older reads have none
+            E.append(f"C{n}: cross_line {c.get('cross_line')!r} not in {sorted(CROSS_LINE)}")
+        elif c.get("cross_line") == "meant" and c.get("axis") != "crossed":
+            W.append(f"C{n}: cross_line is `meant` but the axis is read {c.get('axis')!r} — look again")
         m = c.get("match") or []
         if not m or any(x not in V["match"] for x in m):
             E.append(f"C{n}: match {m!r} — a list from {sorted(V['match'])} (['none'] when nothing matches)")
@@ -1015,7 +1089,8 @@ def merge(read_path: str) -> dict:
     for c, j in zip(rd["cuts"], jd["cuts"]):
         cuts.append({**{k: v for k, v in c.items() if not k.startswith("_")},
                      "measured": {k: j.get(k) for k in ("t", "delta_e", "luma_jump", "look", "screen_dir",
-                                                         "eye_shift", "eye_jump", "cam_before", "cam_after", "flags")}})
+                                                         "eye_shift", "eye_jump", "cam_before", "cam_after", "flags")},
+                     **{"measured_notes": j.get("notes") or []}})
     n = len(cuts) or 1
     rel = {}
     for c in cuts:
@@ -1077,7 +1152,7 @@ def merge(read_path: str) -> dict:
                "locations": {i: len(e["shots"]) for i, e in ents.items() if e["kind"] == "location"},
                "read_vs_pixels_warnings": len(Wn),
                "camera_pct": {k: round(100.0 * v / max(1, len(rd["shots"])), 1) for k, v in sorted(cams.items())},
-               "light_breaks": light_breaks}
+               "light_breaks": light_breaks, "axis_questions": axis_questions(rd)}
     out = {"film": rd["film"], "reader": rd.get("reader"), "date": rd.get("date"), "source": jd.get("file"),
            "duration": jd.get("duration"), "fps": jd.get("fps"), "aspect": [jd.get("w"), jd.get("h")],
            "thresholds": jd.get("thresholds"), "thresholds_tag": jd.get("thresholds_tag"),
@@ -1111,6 +1186,8 @@ def render_md(g: dict) -> str:
                           for p in sh.get("props") or [])
         L.append(f"| {sh['n']} | {m.get('dur', '')} | {sh.get('size')} | {sh.get('angle')} | {m.get('move', '—')} | "
                  f"{sh.get('location') or '—'} | {chars or '—'} | {props or '—'} |")
+    if s.get("axis_questions"):
+        L += ["", "## Questions: the 180° line", ""] + [f"- {q}" for q in s["axis_questions"]]
     L += ["", "## Cuts", "",
           "| C | S→S | relation | match | axis | screen dir (read/px) | eyeline | carries | changes | ΔE | eye shift | flags |",
           "|---|---|---|---|---|---|---|---|---|---|---|---|"]
@@ -1119,7 +1196,7 @@ def render_md(g: dict) -> str:
         L.append(f"| {c['n']} | {c['from']}→{c['to']} | {c['relation']} | {', '.join(c.get('match') or [])} | {c['axis']} | "
                  f"{c['screen_direction']}/{m.get('screen_dir')} | {c['eyeline']} | {', '.join(c.get('carries') or []) or '—'} | "
                  f"{', '.join(c.get('changes') or [])} | {m.get('delta_e')} | {m.get('eye_shift')} | "
-                 f"{'; '.join(m.get('flags') or []) or (c.get('continuity_error') or '')} |")
+                 f"{'; '.join((m.get('flags') or []) + ['~ ' + x for x in c.get('measured_notes') or []] + ([c['continuity_error']] if (c.get('continuity_error') or '').strip() and not (m.get('flags') or []) else []))} |")
     if g.get("emotion_arcs"):
         L += ["", "## Emotion arcs", ""] + [f"- **{k}**: " + " · ".join(v) for k, v in g["emotion_arcs"].items()]
     L += ["", "## Camera, tracked", "", "| S | category | → blocking move | total | speed (mean/peak W/s) | profile | shake | parallax |",
@@ -1164,6 +1241,8 @@ def qa(video: str, cuts_src: str, label: str, out: str, confirmed: bool) -> int:
           + ("confirmed" if confirmed else "⚠ NOT confirmed"))
     for n, f in fl:
         print(f"  ⛔ C{n}: {f}")
+    for n, f in [(j["n"], f) for j in d["cuts"] for f in (j.get("notes") or [])]:
+        print(f"  ~ C{n}: {f} (a note: uncalibrated, not a failure)")
     if eye:
         print(f"  ~ the eye has to jump across C{', C'.join(map(str, eye))} (subject shift ≥ {TH['eye_jump']} of the "
               f"diagonal) — fine on a new scene, a stumble inside one")
@@ -1406,9 +1485,66 @@ def selftest() -> int:
         check("the camera distribution counts the read where given and the measure elsewhere",
               g["summary"]["camera_pct"].get("pan") == 20.0, json.dumps(g["summary"]["camera_pct"]))
         check("qa exits 1 on a flagged join", qa(v, cl, "synth_qa", os.path.join(td, "qa"), True) == 1)
+        check("(3.2.0) the warm/cool note reaches the read form, the merged graph and its table",
+              any("warm/cool" in x for x in json.load(open(os.path.join(td, "READ-synth.json")))["cuts"][0]["_measured"]["light_notes"])
+              and any("warm/cool" in x for x in g["cuts"][0]["measured_notes"])
+              and "~ warm/cool" in open(os.path.join(td, "SHOTGRAPH-synth.md")).read())
+        check("(3.2.0) the warm/cool step is a note, never a flag that makes qa exit 1",
+              any("warm/cool" in f for f in c1.get("notes") or []) and not any("warm/cool" in f for f in c1["flags"]),
+              json.dumps([c1.get("notes"), c1["flags"]]))
+    # (3.2.0) the crossed-axis question, from the read alone
+    cut = lambda **k: {"n": 1, "from": 1, "to": 2, "relation": "same-scene", "axis": "crossed", **k}   # noqa: E731
+    check("(3.2.0) a crossed axis inside one scene is one question", len(axis_questions({"cuts": [cut()]})) == 1)
+    check("(3.2.0) `cross_line: meant` waives it; a crossing across scenes and a kept axis ask nothing",
+          not axis_questions({"cuts": [cut(cross_line="meant"), cut(relation="new-scene"), cut(axis="kept")]})
+          and len(axis_questions({"cuts": [cut(relation="return")]})) == 1)
+    # (3.2.0) the light flags on their own, from measured-shaped inputs
+    C = lambda luma, lab: {"luma": luma, "lab": lab}                                       # noqa: E731
+    Lh = lambda side, on, b, nc=5.0: {"key_side": side, "key_on": on, "b_neutral": b, "neutral_chroma": nc}  # noqa: E731
+    cool = light_flags(C(120, [50, 0, 4]), C(120, [50, 0, -4]), Lh("even", "frame", 4), Lh("even", "frame", -4), 0.8)
+    check("(3.2.0) a cool step of 8 b* between alike pictures is flagged, cooler after the cut",
+          any("warm/cool step" in f and "cooler" in f for f in cool), json.dumps(cool))
+    check("(3.2.0) the same step between unalike pictures is not flagged (content moves b* too)",
+          not light_flags(C(120, [50, 0, 4]), C(120, [50, 0, -4]), Lh("even", "frame", 4), Lh("even", "frame", -4), 0.3))
+    small = light_flags(C(120, [50, 0, 4]), C(120, [50, 0, 1]), Lh("even", "frame", 4), Lh("even", "frame", 1), 0.8)
+    check("(3.2.0) a 3 b* step is under the threshold", not any("warm/cool" in f for f in small), json.dumps(small))
+    check("(3.2.0) no neutral surface on either side (wood against wood) is not read for warm/cool; one neutral side is",
+          not any("warm/cool" in f for f in light_flags(C(120, [50, 0, 4]), C(120, [50, 0, -4]), Lh("even", "frame", 20, 18.0),
+                                                         Lh("even", "frame", 12, 16.0), 0.8))
+          and any("warm/cool" in f for f in light_flags(C(120, [50, 0, 4]), C(120, [50, 0, -4]), Lh("even", "frame", 0, 3.0),
+                                                         Lh("even", "frame", 29, 29.0), 0.8)))
+    check("(3.2.0) a frame too dark to read the light (no neutral b*) is not read for warm/cool",
+          not any("warm/cool" in f for f in light_flags(C(120, [50, 0, 4]), C(120, [50, 0, -4]),
+                                                         Lh("even", "frame", None), Lh("even", "frame", -4), 0.8)))
+    # on pixels: the same grey wall under the same light with a big blue object, then a big yellow one, is NOT a
+    # light change (the whole-frame mean swings); the same wall under a warmer light IS
+    np_, cv2_ = _need()
+    wallg = np_.full((90, 160, 3), 150, np_.uint8)
+    blue, yellow, warm = wallg.copy(), wallg.copy(), wallg.copy()
+    blue[:, :70] = (200, 60, 30); yellow[:, :70] = (30, 200, 230)
+    warm = (wallg.astype(np_.int16) + np_.array([-25, 0, 25])).clip(0, 255).astype(np_.uint8)
+    lb, ly, lw, lg = (light_stats(x, None) for x in (blue, yellow, warm, wallg))
+    check("(3.2.0) a blue object swapped for a yellow one moves the mean b* a lot and the neutral b* hardly",
+          abs(ly["b_mean"] - lb["b_mean"]) > 20 and abs(ly["b_neutral"] - lb["b_neutral"]) < 2,
+          json.dumps([lb["b_mean"], ly["b_mean"], lb["b_neutral"], ly["b_neutral"]]))
+    check("(3.2.0) a warmer light on the same wall moves the neutral b* past the threshold",
+          lw["b_neutral"] - lg["b_neutral"] >= TH["b_step"], json.dumps([lg["b_neutral"], lw["b_neutral"]]))
+    rngw = np_.random.default_rng(11)
+    oak = (np_.array([40, 95, 170]) + rngw.integers(-15, 15, (90, 160, 1))).clip(0, 255).astype(np_.uint8)
+    walnut = (np_.array([30, 60, 110]) + rngw.integers(-15, 15, (90, 160, 1))).clip(0, 255).astype(np_.uint8)
+    lo_, lw_ = light_stats(oak, None), light_stats(walnut, None)
+    check("(3.2.0) two woods and no neutral surface: the neutral b* is not read across that cut",
+          not any("warm/cool" in f for f in light_flags(colour_stats(oak), colour_stats(walnut), lo_, lw_, 0.9)),
+          json.dumps([lo_["b_neutral"], lo_["neutral_chroma"], lw_["b_neutral"], lw_["neutral_chroma"]]))
+    k_face = light_flags(C(120, [50, 0, 0]), C(120, [50, 0, 0]), Lh("left", "face", 0), Lh("right", "face", 0), 0.8)
+    k_thirds = light_flags(C(120, [50, 0, 0]), C(120, [50, 0, 0]), Lh("left", "frame", 0), Lh("right", "frame", 0), 0.8)
+    k_mixed = light_flags(C(120, [50, 0, 0]), C(120, [50, 0, 0]), Lh("left", "face", 0), Lh("right", "frame", 0), 0.8)
+    check("(3.2.0) the key side: flagged face against face and thirds against thirds, skipped face against thirds",
+          any("key light" in f for f in k_face) and any("key light" in f for f in k_thirds)
+          and not any("key light" in f for f in k_mixed), json.dumps([k_face, k_thirds, k_mixed]))
     print("-" * 60)
     print("selftest OK — camera-side naming; on a synthetic five-shot film: the real cut frame, alike vs unalike "
-          "pictures, a colour jump between alike pictures, direction kept and flipped, the subject's position and the "
+          "pictures, a colour jump between alike pictures, a warm/cool step and the key side measured one way, direction kept and flipped, the subject's position and the "
           "eye jump; the camera tracked and categorised (locked, a pan right → blocking `pan`, a zoom); per-shot light, "
           "palette and composition maps, a clean plate; the sheets; the read form, its vocabulary (emotion, light, "
           "locations with variants), the read-vs-pixels second look, the merged graph with emotion arcs and backgrounds, "
@@ -1460,6 +1596,8 @@ def main() -> int:
         g = merge(a.read)
         print(f"SHOTGRAPH-{g['film']}.json/.md · {g['summary']['shots']} shots · {g['summary']['cuts']} cuts · "
               f"{len(g['warnings'])} read-vs-pixel warning(s)")
+        for q in g["summary"].get("axis_questions") or []:
+            print(f"  ? {q}")
         return 0
     ap.print_help()
     return 2

@@ -2,10 +2,10 @@
 
 [![Latest release](https://img.shields.io/github/v/release/designupstrategyaz/cinematographly?label=release)](https://github.com/designupstrategyaz/cinematographly/releases/latest)
 [![Licence: source-available](https://img.shields.io/badge/licence-source--available-blue)](LICENSE)
-[![Claude Code plugin](https://img.shields.io/badge/Claude%20Code-plugin-d97757)](https://docs.anthropic.com/en/docs/claude-code/plugins)
+[![Works in Claude Code, Claude, Cursor and ChatGPT](https://img.shields.io/badge/works%20in-Claude%20Code%20%C2%B7%20Claude%20%C2%B7%20Cursor%20%C2%B7%20ChatGPT-d97757)](#where-it-runs)
 
-**A Claude Code plugin that directs and produces short AI video — brief to export — with a spend gate on every paid
-call and a named person's approval between stages.**
+**A plugin and agent skill for Claude Code, Claude, Cursor and ChatGPT that directs and produces short AI video, brief
+to export. In Claude Code, a spend gate checks every paid call and a named person approves between stages.**
 
 It works the way a small production team does: concept, script, storyboard, casting, start frames, voice, clips,
 selects, music, edit, picture lock, mix and titles, QC, delivery. It also plans and prices a job without making
@@ -27,6 +27,10 @@ In Claude Code:
 
 Restart Claude Code, then run `/cinematographly:doctor`. If the commands do not appear, run
 `claude plugin details cinematographly` in a terminal and check the plugin is enabled.
+
+**In Claude, Cursor or ChatGPT:** add the `skills/cinematographly` folder as a skill in the app's own skill settings.
+The skill and its scripts work there, but the spend gate is not automatic, because it runs through Claude Code's hooks.
+Version 3.3 adds Cursor and ChatGPT packages with their own gate. See [Where it runs](#where-it-runs).
 
 **Upgrading from the old `cinematography` plugin?** Uninstall it first, so two gates do not run on one call: in
 `/plugin` find the line `cinematography@<marketplace>` and uninstall it, or run
@@ -113,13 +117,46 @@ moves. If you import into Final Cut or Premiere, a short report of what came thr
 
 | Need | For | Notes |
 |---|---|---|
-| Claude Code (CLI or desktop app), macOS or Linux | everything | The hooks are how the gate runs. Windows is not supported (paths and the Resolve tooling) |
+| Claude Code (CLI or desktop app), macOS or Linux, or Claude, Cursor or ChatGPT (see [Where it runs](#where-it-runs)) | everything | Windows is not supported (paths and the Resolve tooling) |
 | Python 3.9+ as `python3` | the gate and the scripts | The gate uses only the standard library |
 | `numpy`, `opencv-python-headless`, `Pillow` | the checks that measure pictures and sound | `/cinematographly:setup --install-deps`; optional extras are listed per tool in `requirements.txt` |
 | `ffmpeg` and `ffprobe` | clip, loudness and export checks | |
 | DaVinci Resolve Studio | edit, grade, native titles, mix | Built and tested on 21.1 |
 | A Higgsfield account connected to Claude | AI generation | Kling's own API is supported too |
 | Node.js | HyperFrames and GSAP titles only | GSAP keeps its own licence |
+
+## Where it runs
+
+| App | What runs | Spend gate |
+|---|---|---|
+| Claude Code (CLI or desktop app) | everything | automatic, through the plugin's hooks |
+| Claude (Cowork) | the skill, and the scripts where a shell is available | automatic only where the app runs plugin hooks; elsewhere set `studio_setup.py --hookless` and approvals are recorded as unverified |
+| Cursor | the skill | not automatic yet; 3.3 adds a Cursor package and gate |
+| ChatGPT | the skill | not automatic yet; 3.3 adds a ChatGPT package and gate |
+
+The DaVinci Resolve stage runs only on the machine where Resolve Studio is open (built and tested on macOS), whichever app you use.
+
+## Under the hood
+
+Cinematographly is a Claude Code plugin: one skill, 110 Python scripts, 10 slash commands, 8 subagents and a set of hooks. `SKILL.md` is the agent's rulebook, and 58 reference files are loaded stage by stage, only when that stage needs them.
+
+The spend gate runs as a `PreToolUse` hook. `hooks.json` routes every Higgsfield, Kling, Scenario and DaVinci Resolve tool, plus any claude.ai connector matched by its id, to `gate.py`. Each hook has a 20-second timeout and `onFailure` set to block, and `gate.py` exits 2 for older Claude Code. So a crash, a timeout or an empty answer refuses the call.
+
+Before a paid call runs, the gate checks four things. A job must be open: a checkpoint file that `gate.py open` has validated. Each stage before it must be approved in the approver's own words, found in this session's transcript. The prompt must have passed `prompt_lint.py`, and the call must fit the job's credit envelope.
+
+Reads pass silently. Publishing needs the export approval. A Resolve script that starts a render or calls Resolve's AI voice or auto-captions is denied. After each generate call, a `PostToolUse` hook records the request by hash, so an identical retry within 30 minutes asks first.
+
+The monthly credit ceiling sums one file per spend event, grouped by UTC month; a call past it needs a person to confirm it. Each Claude session keeps its own job pointer and transcript path, so two windows never share a job.
+
+The pipeline has 15 stages, from intake to delivery. Each writes an artifact into a fixed job folder, and the next gate checks that artifact. Picture lock is a one-way door. Independent units fan out to the subagents: research, drafts, critiques, shot prompts, scene continuity, take review and sound-effect spotting. Agents never spend, approve or touch Resolve.
+
+Quality checks measure the files: `clip_qa.py`, `motion_qa.py`, `look_qa.py`, `mix_qa.py` for loudness, `lipsync_check.py`, `title_qa.py` and `srt_qa.py`. A contact sheet is built before any draft is shown.
+
+For the edit, `cut_plan.py` places each cut from the measured motion of the take. `timeline_export.py` writes FCPXML 1.10 for DaVinci Resolve and Final Cut Pro, and FCP 7 XML (xmeml v5) for Premiere Pro, which is experimental. On Resolve Studio 21.1.2 every clip imported frame-exact at 23.976 fps, and the exporter supports seven frame rates without drop-frame timecode.
+
+Costs come from a dated rate card. Each client has a cost file with a retake factor, a job is priced before anything is spent, and closing a job writes a scorecard: credits per kept take and per kept second.
+
+The test runner checks 109 scripts: 5 suites and 89 self-tests. The public CI runs four jobs: the gate on the macOS system Python with the standard library only, the full suite on Python 3.12, `claude plugin validate --strict`, and REUSE licence checks.
 
 ## What it stores, and where
 

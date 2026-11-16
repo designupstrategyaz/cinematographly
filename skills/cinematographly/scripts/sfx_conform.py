@@ -105,6 +105,8 @@ BACKGROUND_GAIN = -6.0     # events that are not the hero's [the council, practi
 JITTER_DB = 1.0            # per-event level jitter so repeats are not identical [practitioner]
 HIGHPASS = 120             # Hz, always: phones do not play below it [practitioner]
 PAN_MAX = 0.4              # constant power; folds to mono ~0.4 dB down at the cap [assumed]
+PAN_SHEET_MAX = 40         # (3.2.0) the same cap on the placement sheet, in Resolve's clip pan units (−100..100).
+                           # APPROXIMATE: Resolve's own pan law is unmeasured, so ±40 there may not be ±0.4 here
 WHIP_MAX = 2               # whooshes per ad at most [the council]
 TAGS = ("count", "material", "surface", "space", "distance", "hero", "pan")
 SPACE_RT60.update({"car": 0.15, "street": 0.3, "forest": 0.2, "studio": 0.3})
@@ -919,7 +921,151 @@ HANDOFF = {"motion": "overlap", "action": "overlap", "carry": "carry", "flip": "
            "whip": "whip", "graphic": "break"}
 
 
-def joins_plan(job: str, whoosh: str | None = None, pan: str = "off", fps: float = 24.0) -> dict:
+# ---- (3.2.0) the delivery's left/right setting, and the pre-lap --------------------------------------------------
+PAN_ON_ASPECTS = {"16:9"}          # a sideways screen or headphones; an upright phone's speakers are top and bottom
+VOICE_FLOOR_DB = 20.0              # a 50 ms window within 20 dB of the voice's loud level is speech [assumed]
+VOICE_ABS_DB = -60.0               # …and above −60 dBFS, so a mostly silent voice file never "speaks" everywhere
+
+
+def job_fps(job: str, fps: float | None = None) -> tuple:
+    """(3.2.0) The timeline's frame rate for markers and frame numbers: (fps, where it came from). An explicit --fps
+    wins, then the cut plan's rate (07-edit/CUTS.json), then the CHECKPOINT format's default; else 24, said so."""
+    if fps:
+        return float(fps), "--fps"
+    try:
+        from fractions import Fraction
+        r = json.load(open(os.path.join(job, "07-edit", "CUTS.json"), encoding="utf-8")).get("rate")
+        if r:
+            return float(Fraction(str(r))), "the cut plan (07-edit/CUTS.json)"
+    except (OSError, ValueError, TypeError, ZeroDivisionError):
+        pass
+    try:
+        import cut_plan as CP
+        r = CP.job_rate(job)
+        if r:
+            return float(r), "the CHECKPOINT's Format"
+    except Exception:                                                       # noqa: BLE001
+        pass
+    return 24.0, "ASSUMED 24 fps: no --fps, no cut plan, no CHECKPOINT Format — check the frames before placing"
+
+
+def pan_mode(job: str) -> tuple:
+    """(3.2.0) Is left/right placement on for this job's delivery? (on, why). The CHECKPOINT's `Pan: on|off` line wins
+    (a headphone cut, or a vertical job that wants it); otherwise a 16:9 delivery is on and anything else is off,
+    because an upright phone's two speakers sit top and bottom (editing-and-audio.md §7f). Unknown → off."""
+    cp = os.path.join(job, "00-brief", "CHECKPOINT.md")
+    txt = open(cp, encoding="utf-8").read() if os.path.isfile(cp) else ""
+    m = re.search(r"(?mi)^Pan:\s*`?(on|off)\b", txt)
+    if m:
+        return m.group(1).lower() == "on", f"CHECKPOINT `Pan: {m.group(1).lower()}`"
+    try:
+        import sequence_lint as SL
+        asp = SL.job_aspect(os.path.join(job, "00-brief"), job=job)
+    except Exception:                                                       # noqa: BLE001
+        asp = None
+    if asp in PAN_ON_ASPECTS:
+        return True, f"the delivery is {asp}"
+    return False, (f"the delivery is {asp}: an upright phone's speakers sit top and bottom" if asp else
+                   "no delivery format found (CHECKPOINT `Format:`), so off")
+
+
+def voice_active(voice: str | None, t0: float, t1: float):
+    """(3.2.0) Does the voice (a file in timeline time) speak between t0 and t1? True/False, or None when there is
+    no voice to read."""
+    if not voice or not os.path.isfile(voice):
+        return None
+    np = _np()
+    x = pcm(voice)
+    if not x.size:
+        return None
+    hop = int(0.05 * SR)
+    n = max(1, len(x) // hop)
+    db = 10 * np.log10(np.array([float((x[i * hop:(i + 1) * hop] ** 2).mean()) for i in range(n)]) + 1e-12)
+    loud = float(np.percentile(db, 99))            # a voice file is mostly quiet: its loud level is near the top
+    a, b = int(max(0.0, t0) / 0.05), int(max(0.0, t1) / 0.05) + 1
+    floor = max(loud - VOICE_FLOOR_DB, VOICE_ABS_DB)   # never silence: a hop under −60 dBFS is not speech
+    return bool((db[a:b] >= floor).any()) if a < n else False
+
+
+PRELAP_SHOW_S = 1.0        # (3.2.0) the named event must be seen within this long after the next shot's IN [assumed]
+
+
+def _in_s(job: str, shot: str | None) -> float | None:
+    """(3.2.0) The next shot's IN in its own clip time, from the cut plan (07-edit/CUTS.json), or None."""
+    try:
+        c = json.load(open(os.path.join(job, "07-edit", "CUTS.json"), encoding="utf-8"))
+        from fractions import Fraction
+        R = Fraction(str(c.get("rate") or "24"))
+        r = next((x for x in c.get("shots") or [] if x.get("shot") == shot and "in" in x), None)
+        return float(r["in"] / R) if r else None
+    except (OSError, ValueError, TypeError, ZeroDivisionError):
+        return None
+
+
+def prelap_row(job: str, plan: dict, to: str | None, t: float | None, pan_on: bool, voice: str | None) -> dict | None:
+    """(3.2.0) The pre-lap the outgoing shot's prompt asks for (`prelap: 0.5s, knock, side=right`), checked: the
+    named event (the next shot's read word, e.g. `knock`, or its id, e.g. `E2`) must be in the next shot's read,
+    within PRELAP_SHOW_S of its IN when the cut plan gives one, and the lead is skipped when the voice speaks at any
+    point during it."""
+    import prompt_lint as PL
+    raw = str(plan.get("prelap") or "").strip()
+    if not raw:
+        return None
+    pl, why = PL.parse_prelap(raw)
+    if why:
+        return {"status": "invalid", "note": f"`prelap: {raw}` — {why}"}
+    out = {**pl, "status": "planned"}
+    if t is None:
+        out.update(status="not checked", note="no cut time for this join yet")
+        return out
+    out["t_start"] = round(max(0.0, t - pl["lead_s"]), 3)
+    if t - pl["lead_s"] < -1e-9:
+        out["warn_lead"] = (f"the cut is {t:.2f} s in, so the {pl['lead_s']:g} s lead is shortened to {t:.2f} s")
+    rp = os.path.join(job, "09-qa", "sfx", f"{to}.read.json") if to else ""
+    if not (rp and os.path.isfile(rp)):
+        out["event_check"] = f"not checked: no read for {to} (`sfx_conform.py read`)"
+    else:
+        evs = json.load(open(rp, encoding="utf-8")).get("events") or []
+        hit = [e for e in evs if pl["event"].lower() in (str(e.get("id") or "").lower(), str(e.get("what") or "").lower())]
+        b_in = _in_s(job, to)
+        if hit and b_in is not None:
+            near = [e for e in hit if b_in - 1e-6 <= float(e.get("t") or 0.0) <= b_in + PRELAP_SHOW_S]
+            out["event_check"] = (f"found in the next shot's read, {float(near[0]['t']) - b_in:.2f} s after its IN"
+                                  if near else "MISSING")
+            if not near:
+                early = all(float(e.get("t") or 0.0) < b_in for e in hit)
+                out["warn"] = (f"`{pl['event']}` happens before {to}'s IN ({b_in:.2f} s): the cut never shows it"
+                               if early else
+                               f"`{pl['event']}` is in {to}'s read but not within {PRELAP_SHOW_S:g} s of its IN: the "
+                               f"sound arrives long before the picture shows it")
+        elif hit:
+            out["event_check"] = "found in the next shot's read (its time not checked: no cut plan, 07-edit/CUTS.json)"
+        else:
+            out["event_check"] = "MISSING"
+            out["warn"] = (f"`{pl['event']}` is not in {to}'s read (a read word such as `knock` or `open`, or an id "
+                           f"such as `E2`): the sound promises something the next shot does not show")
+    va = voice_active(voice, out["t_start"], t)          # any speech during the lead
+    if va is None:
+        out["voice_check"] = "not checked: no voice given (--voice)"
+    elif va:
+        out.update(status="skipped", voice_check="the voice speaks during the lead",
+                   note="skipped: the voice speaks during the lead; a sound under the words would mask them")
+        return out
+    else:
+        out["voice_check"] = "clear"
+    pan = 0
+    if pan_on and pl.get("side"):                 # the same values as a placement-sheet row with a side and no x
+        pan = (PAN_SHEET_MAX if pl["side"].startswith("off-") else PAN_SIDE_ONLY) * (-1 if "left" in pl["side"] else 1)
+    out["pan"] = pan
+    real = round(t - out["t_start"], 3)
+    out["note"] = (f"start {real:g} s before this cut at the off-screen level ({OFFSCREEN['gain']:+g} dB, "
+                   f"low-passed at {OFFSCREEN['lp'] // 1000} kHz), rising to full by the cut — a fade, not a step"
+                   + (f"; clip pan {pan:+d} (approximate)" if pan else ""))
+    return out
+
+
+def joins_plan(job: str, whoosh: str | None = None, pan: str = "off", fps: float | None = None,
+               voice: str | None = None) -> dict:
     np = _np()
     import motion_qa as MQ
     js = sorted(glob.glob(os.path.join(job, "09-qa", "motion", "*.joins.json")), key=os.path.getmtime)
@@ -928,6 +1074,8 @@ def joins_plan(job: str, whoosh: str | None = None, pan: str = "off", fps: float
     J = json.load(open(js[-1], encoding="utf-8"))
     prompts = os.path.join(job, "01-script", "prompts")
     rows, whips = [], 0
+    fps, fps_why = job_fps(job, fps)
+    pan_on, pan_why = pan_mode(job)
     for j in J.get("joins", []):
         a = j.get("from")
         plan = MQ._plan(os.path.join(prompts, f"{a}.clip.prompt.md")) if a else {}
@@ -942,6 +1090,9 @@ def joins_plan(job: str, whoosh: str | None = None, pan: str = "off", fps: float
                 "plain": "no planned hand-off: trim tails at the cut"}[act]
         row = {"n": j.get("n"), "t": j.get("t"), "from": a, "to": j.get("to"), "join": jn or None, "sound": act,
                "note": note}
+        pr = prelap_row(job, plan, j.get("to"), j.get("t"), pan_on, voice)
+        if pr:
+            row["prelap"] = pr
         if act == "whip":
             whips += 1
             if whips > WHIP_MAX:
@@ -968,7 +1119,15 @@ def joins_plan(job: str, whoosh: str | None = None, pan: str = "off", fps: float
                                f"the ramp, {hit}" if ci is not None and co is not None else
                                f"no place in the cut yet — add cut_in=/cut_out= to {shot}'s `ramp:` once cut")})
     stem = os.path.splitext(os.path.basename(js[-1]))[0].replace(".joins", "")
+    joined_from = {j.get("from") for j in J.get("joins", [])}
+    orphan = []                                          # (3.2.0) a pre-lap on a shot with no cut after it
+    for p in sorted(glob.glob(os.path.join(prompts, "*.clip.prompt.md"))):
+        sh = os.path.basename(p).split(".")[0]
+        if sh not in joined_from and str(MQ._plan(p).get("prelap") or "").strip():
+            orphan.append(f"{sh} asks for a pre-lap but has no cut after it in this cut: ignored")
     rep = {"cut": J.get("cut"), "joins": rows, "whooshes": min(whips, WHIP_MAX), "ramps": ramps,
+           "prelap_ignored": orphan,
+           "pan": {"on": pan_on, "why": pan_why}, "fps": {"fps": fps, "why": fps_why},
            "made": dt.datetime.now().isoformat(timespec="minutes")}
     if whoosh:
         x = pcm(whoosh)
@@ -981,7 +1140,7 @@ def joins_plan(job: str, whoosh: str | None = None, pan: str = "off", fps: float
                 continue
             seg = _fft_filter(x.copy(), SR, hp=HIGHPASS)
             n = seg.size
-            if pan == "follow" and r.get("sweep"):
+            if pan == "follow" and pan_on and r.get("sweep"):  # (3.2.0) never on a delivery with left/right off
                 p = np.linspace(-PAN_MAX, PAN_MAX, n) * (1 if r["sweep"] == "right" else -1)
             else:
                 p = np.zeros(n)
@@ -1008,6 +1167,15 @@ def joins_plan(job: str, whoosh: str | None = None, pan: str = "off", fps: float
         edl += [f"{i:03d}  001      V     C        {tc} {_tc((r['t'] or 0) + 1 / fps, fps)} {tc} {_tc((r['t'] or 0) + 1 / fps, fps)}",
                 f"{r['sound'].upper()}: {r['note']} |C:{col[r['sound']]} |M:{r['sound']} |D:1", ""]
     k = len(rows)
+    for r in rows:                                       # (3.2.0) a marker where each pre-lap's sound starts
+        pr = r.get("prelap") or {}
+        if pr.get("status") != "planned" or pr.get("t_start") is None:
+            continue
+        k += 1
+        tc = _tc(pr["t_start"], fps)
+        edl += [f"{k:03d}  001      V     C        {tc} {_tc(pr['t_start'] + 1 / fps, fps)} {tc} {_tc(pr['t_start'] + 1 / fps, fps)}",
+                f"PRELAP into {r['to']} ({pr['event']}): {pr['note']}" + (f" ⚠ {pr['warn']}" if pr.get("warn") else "")
+                + " |C:ResolveColorPink |M:prelap |D:1", ""]
     for r in ramps:
         if r["t"] is None or r["t_out"] is None:
             continue
@@ -1846,7 +2014,87 @@ def continuous_on_graphic(events: list, fps: float = 24.0) -> list:
     return W
 
 
-def levels(job: str, placement: str, voice: str, fps: float = 24.0, write: bool = False) -> dict:
+SIDES = ("left", "right", "centre", "off-left", "off-right")
+PAN_SIDE_ONLY = 20         # (3.2.0) a row with a side and no x sits at half the cap [assumed]
+DIP_FRAMES = (1, 3)        # (3.2.0) the bed dipped 1–3 frames before a must-hit (editing-and-audio.md § Action points)
+
+
+def pan_for_row(e: dict, pan_on: bool) -> tuple:
+    """(3.2.0) The clip pan for one placement row, in Resolve's clip units (−100..100), capped at ±PAN_SHEET_MAX:
+    (pan, problem). The spotter writes a side word; the number comes from the event's x when the row has one (the
+    same x → pan mapping as `params_for`, ×100), else half the cap on that side; an off-screen side sits at the cap.
+    APPROXIMATE until Resolve's own pan law is measured. With left/right off for the delivery, every row is 0."""
+    if not pan_on:
+        return 0, None
+    side = str(e.get("side") or "").strip().lower()
+    if e.get("pan") is not None and not side and e.get("x") is None:   # a number a person set by hand
+        try:
+            v = float(e["pan"])
+        except (TypeError, ValueError):
+            return None, f"pan {e.get('pan')!r} is not a number"
+        if abs(v) > PAN_SHEET_MAX:
+            return None, f"pan {v:g} is past the ±{PAN_SHEET_MAX} cap"
+        if 0 < abs(v) < 1:
+            return None, f"pan {v:g} looks like the conform's coefficient: the sheet's unit is −{PAN_SHEET_MAX}..{PAN_SHEET_MAX}"
+        return int(round(v)), None
+    if not side:
+        return None, "no `side` (left, right, centre, off-left, off-right): left/right is on for this delivery"
+    if side not in SIDES:
+        return None, f"side {side!r}: {', '.join(SIDES)}"
+    if side == "centre":
+        return 0, None
+    sign = -1 if "left" in side else 1
+    if side.startswith("off-"):
+        return sign * PAN_SHEET_MAX, None
+    if e.get("x") is not None:
+        v = max(-PAN_SHEET_MAX, min(PAN_SHEET_MAX, int(round((float(e["x"]) - 0.5) * 0.8 * 100))))
+        if v * sign < 0:
+            return None, f"side {side} but x {float(e['x']):.2f} puts it on the other side"
+        return v, None
+    return sign * PAN_SIDE_ONLY, None
+
+
+def dips_for(job: str, fps: float) -> list:
+    """(3.2.0) The must-hits marked `dip: yes` in 07-edit/music/HITS.json: a 1–3 frame dip of the ambience bed before
+    each, proposed on the sheet. Not written to the planned-holes file: room tone counts silence only at −60 LUFS for
+    0.4 s, which a 3-frame dip never reaches."""
+    try:
+        H = json.load(open(os.path.join(job, "07-edit", "music", "HITS.json"), encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    out = []
+    for h in H.get("hits") or []:
+        if str(h.get("dip") or "").lower() in ("yes", "true", "1") and h.get("priority") == "must" and h.get("t") is not None:
+            t = float(h["t"])
+            out.append({"hit": h.get("id"), "t": round(t, 3), "frame": int(round(t * fps)),
+                        "dip_from_frame": int(round(t * fps)) - DIP_FRAMES[1], "dip_to_frame": int(round(t * fps)),
+                        "note": f"dip the ambience bed (A3) for {DIP_FRAMES[0]}–{DIP_FRAMES[1]} frames before the hit, "
+                                f"back to full on the hit"})
+    return out
+
+
+def placement_sheet(rep: dict, pan_on: bool, pan_why: str) -> str:
+    """(3.2.0) The sheet the computer-control pass in Fairlight follows: each sound's frame, clip volume and clip
+    pan, and the dips before the must-hits."""
+    L = ["# SFX placement sheet", "", f"Measured {rep['made']} · voice {rep['voice']} · frames at "
+         f"{rep['fps']['fps']:g} fps ({rep['fps']['why']}) · left/right "
+         f"{'ON' if pan_on else 'OFF'} ({pan_why})", "",
+         "Clip pan values are APPROXIMATE until Resolve's own pan law is measured (a pink-noise test render at "
+         f"±{PAN_SHEET_MAX}); the cap and the x mapping come from the conform's constant-power law.", "",
+         "| FX | sound | frame | in (s) | clip volume (dB) | clip pan | note |", "|---|---|---|---|---|---|---|"]
+    for r in rep["events"]:
+        pan = r.get("pan")
+        note = r.get("problem") or r.get("pan_problem") or ""
+        L.append(f"| FX{r['i'] + 1} | {r.get('sfx') or ''} | {r.get('frame')} | {r.get('in_s', '')} | "
+                 f"{r.get('volume_db', '')} | {'' if pan is None else f'{pan:+d}' if pan else '0'} | {note} |")
+    if rep.get("dips"):
+        L += ["", "## Dips before the must-hits", ""]
+        L += [f"- {d['hit']} at frame {d['frame']}: {d['note']} (frames {d['dip_from_frame']}–{d['dip_to_frame']})"
+              for d in rep["dips"]]
+    return "\n".join(L) + "\n"
+
+
+def levels(job: str, placement: str, voice: str, fps: float | None = None, write: bool = False) -> dict:
     np = _np()
     import mix_qa as MQ
     P = json.load(open(placement if os.path.isabs(placement) else os.path.join(job, placement), encoding="utf-8"))
@@ -1859,11 +2107,17 @@ def levels(job: str, placement: str, voice: str, fps: float = 24.0, write: bool 
     vt = np.asarray(V["t"], dtype=np.float64)
     vm = np.asarray(V["M"], dtype=np.float64)
     rows = []
+    fps, fps_why = job_fps(job, fps)
+    pan_on, pan_why = pan_mode(job)
     for k, e in enumerate(events):
         f = e.get("file") or ""
         fp = f if os.path.isabs(f) else os.path.join(job, f)
         cat = sfx_category(e)
         row = {"i": k, "sfx": e.get("sfx"), "frame": e.get("frame"), "category": cat, "target_under_voice_db": targets[cat]}
+        pv, pproblem = pan_for_row(e, pan_on)
+        row["pan"] = pv
+        if pproblem:
+            row["pan_problem"] = pproblem
         if not os.path.isfile(fp):
             row["problem"] = f"the file is not on this machine: {f}"
             rows.append(row); continue
@@ -1914,15 +2168,24 @@ def levels(job: str, placement: str, voice: str, fps: float = 24.0, write: bool 
            "voice_speech_lufs": round(speech, 1), "targets": targets, "ceiling_dbfs": SFX_CEILING_DB, "events": rows,
            "density_per_min": density, "client_density_per_min": ca.get("sfx_density_per_min"),
            "warnings": continuous_on_graphic(events, fps),
-           "client_audio": ca.get("_source"), "made": dt.datetime.now().isoformat(timespec="minutes")}
+           "client_audio": ca.get("_source"), "made": dt.datetime.now().isoformat(timespec="minutes"),
+           "pan": {"on": pan_on, "why": pan_why, "approximate": True}, "dips": dips_for(job, fps),
+           "fps": {"fps": fps, "why": fps_why},
+           "pan_problems": [f"FX{r['i'] + 1}: {r['pan_problem']}" for r in rows if r.get("pan_problem")]}
     os.makedirs(os.path.join(job, "09-qa", "sfx"), exist_ok=True)
     json.dump(rep, open(os.path.join(job, "09-qa", "sfx", "LEVELS.json"), "w", encoding="utf-8"), indent=1)
+    sheet = os.path.join(os.path.dirname(placement if os.path.isabs(placement) else os.path.join(job, placement)),
+                         "SFX-PLACEMENT.md")
+    open(sheet, "w", encoding="utf-8").write(placement_sheet(rep, pan_on, pan_why))
+    rep["sheet"] = rel(job, sheet)
     if write:
         for r in rows:
             if "volume_db" in r:
                 e = events[r["i"]]
                 e.setdefault("volume_db_prev", e.get("volume_db"))
                 e["volume_db"], e["in_s"] = r["volume_db"], r["in_s"]
+                if r.get("pan") is not None:
+                    e["pan_sheet"] = r["pan"]            # its own key: `side`/`x` stay the source, recomputed each run
                 e["level"] = f"{r['category']} {r['target_under_voice_db']:+g} dB to the voice, measured {rep['made']}"
         pp = placement if os.path.isabs(placement) else os.path.join(job, placement)
         json.dump(P, open(pp, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
@@ -2432,6 +2695,92 @@ def selftest() -> int:
         check("a ramp mutes the clip under it, its cue named, with markers at its place in the cut",
               rr and rr[0]["cue"] == "whoosh-down" and "mute S3" in rr[0]["note"]
               and "RAMP IN S3" in open(os.path.join(job, "09-qa", "sfx", "cut.joins-sound.edl")).read(), json.dumps(rr))
+        # (3.2.0) the pre-lap: the next shot's sound before the cut, checked against its read and the voice
+        os.makedirs(os.path.join(job, "00-brief"), exist_ok=True)
+        open(os.path.join(job, "00-brief", "CHECKPOINT.md"), "w").write("Pan: on\n")
+        check("(3.2.0) left/right follows the CHECKPOINT's `Pan:` line", pan_mode(job)[0] is True)
+        open(os.path.join(job, "00-brief", "CHECKPOINT.md"), "w").write("Format: vertical-1080\n")
+        check("(3.2.0) a vertical delivery is off by default", pan_mode(job)[0] is False, pan_mode(job)[1])
+        open(os.path.join(job, "00-brief", "CHECKPOINT.md"), "w").write("Format: landscape-1080\n")
+        check("(3.2.0) a 16:9 delivery is on by default", pan_mode(job)[0] is True, pan_mode(job)[1])
+        open(os.path.join(job, "01-script", "prompts", "S1.clip.prompt.md"), "w").write(
+            "---\nshot: S1\nkind: clip\nexit: right\njoin: motion-match\nprelap: 0.5s, knock, side=right\n---\n[MOTION]\nx\n")
+        json.dump({"events": [{"id": "E1", "t": 0.4, "what": "knock"}]}, open(os.path.join(job, "09-qa", "sfx", "S2.read.json"), "w"))
+        JP2 = joins_plan(job)
+        pr = JP2["joins"][0].get("prelap") or {}
+        check("(3.2.0) a pre-lap starts its lead before the cut, panned like a sheet row with a side and no x",
+              pr.get("status") == "planned" and abs(pr.get("t_start", -1) - 0.5) < 1e-6 and pr.get("pan") == PAN_SIDE_ONLY,
+              json.dumps(pr))
+        edl_ = open(os.path.join(job, "09-qa", "sfx", "cut.joins-sound.edl")).read()
+        joins_plan(job, fps=30.0)
+        edl30 = open(os.path.join(job, "09-qa", "sfx", "cut.joins-sound.edl")).read()
+        pl_line = lambda e: next(ln for ln in e.splitlines() if ln.startswith("0") and                      # noqa: E731
+                                 e.splitlines()[e.splitlines().index(ln) + 1].startswith("PRELAP"))
+        check("(3.2.0) the pre-lap's marker sits where the sound starts: 0.5 s = frame 12 at 24 fps, frame 15 at 30",
+              "00:00:00:12" in pl_line(edl_) and "00:00:00:15" in pl_line(edl30), pl_line(edl_) + " | " + pl_line(edl30))
+        json.dump({"events": [{"id": "E1", "t": 0.4, "what": "open"}, {"id": "E2", "t": 0.6, "what": "knock"}]},
+                  open(os.path.join(job, "09-qa", "sfx", "S2.read.json"), "w"))
+        open(os.path.join(job, "01-script", "prompts", "S1.clip.prompt.md"), "w").write(
+            "---\nshot: S1\nkind: clip\nexit: right\njoin: motion-match\nprelap: 0.5s, E1, side=off-right\n---\n[MOTION]\nx\n")
+        pr = joins_plan(job)["joins"][0]["prelap"]
+        check("(3.2.0) the event can be named by its read id, and an off-screen side sits at the cap",
+              "found" in pr.get("event_check", "") and pr.get("pan") == PAN_SHEET_MAX, json.dumps(pr))
+        os.makedirs(os.path.join(job, "07-edit"), exist_ok=True)
+        json.dump({"rate": "24", "shots": [{"shot": "S2", "in": 24}]}, open(os.path.join(job, "07-edit", "CUTS.json"), "w"))
+        pr = joins_plan(job)["joins"][0]["prelap"]                     # S2's IN is 1.0 s; E1 at 0.4 s is before it
+        check("(3.2.0) an event before the next shot's IN is never shown, and the warning says so",
+              pr.get("event_check") == "MISSING" and "the cut never shows it" in pr.get("warn", ""), json.dumps(pr))
+        json.dump({"rate": "24", "shots": [{"shot": "S2", "in": 2}]}, open(os.path.join(job, "07-edit", "CUTS.json"), "w"))
+        json.dump({"events": [{"id": "E1", "t": 2.5, "what": "open"}]}, open(os.path.join(job, "09-qa", "sfx", "S2.read.json"), "w"))
+        pr = joins_plan(job)["joins"][0]["prelap"]                     # IN 0.083 s; E1 at 2.5 s, past the 1 s window
+        check("(3.2.0) an event more than 1 s after the next shot's IN is too late for the lead, and said so",
+              pr.get("event_check") == "MISSING" and "long before" in pr.get("warn", ""), json.dumps(pr))
+        os.remove(os.path.join(job, "07-edit", "CUTS.json"))
+        open(os.path.join(job, "01-script", "prompts", "S1.clip.prompt.md"), "w").write(
+            "---\nshot: S1\nkind: clip\nexit: right\njoin: motion-match\nprelap: 0.5s, knock, side=right\n---\n[MOTION]\nx\n")
+        open(os.path.join(job, "01-script", "prompts", "S9.clip.prompt.md"), "w").write(
+            "---\nshot: S9\nkind: clip\nprelap: 0.5s, knock\n---\n[MOTION]\nx\n")
+        json.dump({"cut": "07-edit/cut.mp4", "joins": [{"n": 1, "t": 0.2, "from": "S1", "to": "S2", "screen_dir": "kept"}]},
+                  open(os.path.join(job, "09-qa", "motion", "cut.joins.json"), "w"))
+        prs = joins_plan(job)["joins"][0]["prelap"]
+        check("(3.2.0) a lead longer than the time before the cut is shortened, and said so in the note and a warning",
+              prs.get("t_start") == 0.0 and "shortened to 0.20 s" in prs.get("warn_lead", "")
+              and prs["note"].startswith("start 0.2 s before"), json.dumps(prs))
+        json.dump({"cut": "07-edit/cut.mp4", "joins": [{"n": i + 1, "t": 1.0 + i, "from": f"S{i + 1}", "to": f"S{i + 2}",
+                                                       "screen_dir": "kept"} for i in range(6)]},
+                  open(os.path.join(job, "09-qa", "motion", "cut.joins.json"), "w"))
+        check("(3.2.0) a pre-lap on a shot with no cut after it is named as ignored, never dropped silently",
+              any("S9" in x for x in joins_plan(job)["prelap_ignored"]))
+        os.remove(os.path.join(job, "01-script", "prompts", "S9.clip.prompt.md"))
+        check("(3.2.0) with no voice given, the voice check says 'not checked'", "not checked" in pr.get("voice_check", ""))
+        json.dump({"events": [{"id": "E1", "t": 0.4, "what": "tap"}]}, open(os.path.join(job, "09-qa", "sfx", "S2.read.json"), "w"))
+        pr = joins_plan(job)["joins"][0]["prelap"]
+        check("(3.2.0) a pre-lap whose event the next shot does not show is a WARN", pr.get("event_check") == "MISSING"
+              and "promises" in pr.get("warn", ""), json.dumps(pr))
+        os.remove(os.path.join(job, "09-qa", "sfx", "S2.read.json"))
+        check("(3.2.0) no read for the next shot → 'not checked', never silence",
+              "not checked" in joins_plan(job)["joins"][0]["prelap"]["event_check"])
+        vo = os.path.join(job, "05-voice", "vo.wav"); os.makedirs(os.path.dirname(vo), exist_ok=True)
+        np_ = _np(); tt = np_.arange(int(3.0 * SR)) / SR
+        sp = (0.3 * np_.sin(2 * np_.pi * 220 * tt)).astype(np_.float32); sp[int(1.2 * SR):] = 0.0   # speaks 0–1.2 s
+        write_wav(vo, sp)
+        pr = joins_plan(job, voice=vo)["joins"][0]["prelap"]
+        check("(3.2.0) a pre-lap is skipped when the voice speaks during the lead", pr.get("status") == "skipped", json.dumps(pr))
+        sp2 = np_.zeros_like(sp); sp2[int(0.8 * SR): int(0.95 * SR)] = 0.3 * np_.sin(2 * np_.pi * 220 * tt[: int(0.15 * SR)])
+        write_wav(vo, sp2)                                             # silent at the lead's start, speaking before the cut
+        pr2 = joins_plan(job, voice=vo)["joins"][0]["prelap"]
+        check("(3.2.0) …also when the voice is silent at the lead's start and speaks before the cut",
+              pr2.get("status") == "skipped" and "during the lead" in pr2.get("note", ""), json.dumps(pr2))
+        sp3 = np_.zeros_like(sp); sp3[int(2.0 * SR): int(2.15 * SR)] = 0.3 * np_.sin(2 * np_.pi * 220 * tt[: int(0.15 * SR)])
+        write_wav(vo, sp3)                                             # a mostly quiet file: it speaks only after the cut
+        pr3 = joins_plan(job, voice=vo)["joins"][0]["prelap"]
+        check("(3.2.0) a voice that speaks only outside the lead does not block it (a quiet file is not speech)",
+              pr3.get("status") == "planned" and pr3.get("voice_check") == "clear", json.dumps(pr3))
+        open(os.path.join(job, "00-brief", "CHECKPOINT.md"), "w").write("Format: vertical-1080\n")
+        check("(3.2.0) on a vertical delivery the pre-lap is not panned",
+              joins_plan(job)["joins"][0]["prelap"]["pan"] == 0)
+        open(os.path.join(job, "01-script", "prompts", "S1.clip.prompt.md"), "w").write(
+            "---\nshot: S1\nkind: clip\nexit: right\njoin: motion-match\n---\n[MOTION]\nx\n")
     print("-" * 60)
     # the measured level step (a supplement ad job)
     with tempfile.TemporaryDirectory() as td2:
@@ -2474,6 +2823,60 @@ def selftest() -> int:
               # no attack between in_s and out_s: it says so, never jumps to the next hit past the end
               and "no attack between" in rt_[2].get("problem", "") and "transient_after_in_frames" not in rt_[2],
               json.dumps(rt_))
+        # (3.2.0) the clip pan on the sheet, and the dip before a must-hit
+        PF = lambda e, on=True: pan_for_row(e, on)                          # noqa: E731
+        check("(3.2.0) pan from x in the sheet's unit: x 0.9 → +32, x 0.1 → −32, off-left → −40, centre → 0",
+              PF({"side": "right", "x": 0.9}) == (32, None) and PF({"side": "left", "x": 0.1}) == (-32, None)
+              and PF({"side": "off-left"}) == (-PAN_SHEET_MAX, None) and PF({"side": "centre"}) == (0, None),
+              json.dumps([PF({"side": "right", "x": 0.9}), PF({"side": "left", "x": 0.1})]))
+        check("(3.2.0) the same mapping as the conform's coefficient (0.32 there is +32 here, never 0.32)",
+              PF({"side": "right", "x": 0.9})[0] == round(params_for({"x": 0.9}, {"pan": "follow"},
+                                                                     np.random.default_rng(0), 1)["pan"] * 100))
+        check("(3.2.0) with left/right on, a row with no side is refused; one past the cap too; a side against its x",
+              PF({})[0] is None and "no `side`" in PF({})[1] and PF({"pan": 80})[0] is None
+              and PF({"side": "left", "x": 0.9})[0] is None)
+        check("(3.2.0) with left/right off for the delivery, every row is 0", PF({}, False) == (0, None)
+              and PF({"side": "off-left"}, False) == (0, None))
+        os.makedirs(os.path.join(job2, "00-brief"), exist_ok=True)
+        open(os.path.join(job2, "00-brief", "CHECKPOINT.md"), "w").write("Pan: on\n")
+        os.makedirs(os.path.join(job2, "07-edit", "music"), exist_ok=True)
+        json.dump({"hits": [{"id": "H1", "t": 2.0, "priority": "must", "dip": "yes"},
+                            {"id": "H2", "t": 3.0, "priority": "must"},
+                            {"id": "H3", "t": 4.0, "priority": "optional", "dip": "yes"}]},
+                  open(os.path.join(job2, "07-edit", "music", "HITS.json"), "w"))
+        json.dump({"events": [{"sfx": "light switch", "frame": 48, "file": "06-music/switch.wav", "side": "off-right"},
+                              {"sfx": "light switch", "frame": 60, "file": "06-music/switch.wav"}]},
+                  open(os.path.join(job2, "06-music", "PAN.json"), "w"))
+        rp_ = levels(job2, "06-music/PAN.json", "voice.wav", 24.0, write=True)
+        sh_ = open(os.path.join(job2, "06-music", "SFX-PLACEMENT.md")).read()
+        pj_ = json.load(open(os.path.join(job2, "06-music", "PAN.json")))
+        check("(3.2.0) the sheet carries each clip pan, labelled approximate; the refused row is named; --write keeps it",
+              rp_["events"][0]["pan"] == PAN_SHEET_MAX and "| +40 |" in sh_ and "APPROXIMATE" in sh_
+              and rp_["pan_problems"] and "FX2" in rp_["pan_problems"][0] and pj_["events"][0].get("pan_sheet") == 40
+              and "pan_sheet" not in pj_["events"][1], sh_)
+        # a run with left/right off writes 0s; switching it on recomputes from the side, and the no-side row is refused
+        open(os.path.join(job2, "00-brief", "CHECKPOINT.md"), "w").write("Pan: off\n")
+        levels(job2, "06-music/PAN.json", "voice.wav", 24.0, write=True)
+        open(os.path.join(job2, "00-brief", "CHECKPOINT.md"), "w").write("Pan: on\n")
+        rp2 = levels(job2, "06-music/PAN.json", "voice.wav", 24.0)
+        check("(3.2.0) a pan written while left/right was off does not stick when it is turned on",
+              rp2["events"][0]["pan"] == PAN_SHEET_MAX and rp2["pan_problems"], json.dumps(rp2["events"]))
+        check("(3.2.0) a hand-set pan of 0.32 (the conform's coefficient) is refused, never rounded to 0",
+              PF({"pan": 0.32})[0] is None and "coefficient" in PF({"pan": 0.32})[1])
+        rcli = subprocess.run([sys.executable, os.path.abspath(__file__), "levels", job2, "--placement",
+                               "06-music/PAN.json", "--voice", "voice.wav"], capture_output=True, text=True, timeout=120)
+        check("(3.2.0) the levels command exits 1 when a row is refused, and says why",
+              rcli.returncode == 1 and "REFUSED pan FX2" in rcli.stdout, rcli.stdout[-400:] + rcli.stderr[-400:])
+        check("(3.2.0) with no rate anywhere, the frame rate is 24 and the report says it was assumed",
+              job_fps(job2)[0] == 24.0 and "ASSUMED" in job_fps(job2)[1])
+        os.makedirs(os.path.join(job2, "07-edit"), exist_ok=True)
+        json.dump({"rate": "30000/1001", "shots": []}, open(os.path.join(job2, "07-edit", "CUTS.json"), "w"))
+        rp3 = levels(job2, "06-music/PAN.json", "voice.wav")
+        check("(3.2.0) the frames follow the cut plan's rate: a must-hit at 2.0 s is frame 60 at 29.97 fps, not 48",
+              abs(rp3["fps"]["fps"] - 29.97) < 0.01 and rp3["dips"][0]["frame"] == 60, json.dumps(rp3["dips"]))
+        check("(3.2.0) one dip, 1–3 frames before the must-hit marked `dip: yes`, on the sheet only",
+              len(rp_["dips"]) == 1 and rp_["dips"][0]["frame"] == 48 and rp_["dips"][0]["dip_from_frame"] == 45
+              and "Dips before the must-hits" in sh_ and "frames at 24 fps (--fps)" in sh_, json.dumps(rp_["dips"]))
         # (build review 3, Grok) with the sheet's out_s the in-point is exact: two slow-rising taps 80 ms apart, the
         # first one's attack (its peak) lands inside the old 50 ms look-back before the second one's start
         n_, r_ = int(0.06 * SR), int(0.04 * SR)
@@ -2545,9 +2948,14 @@ def main() -> int:
         c.add_argument(f"--{t}")
     lv = sub.add_parser("levels"); lv.add_argument("job"); lv.add_argument("--placement", required=True)
     lv.add_argument("--voice", required=True, help="the voice (dialogue stem or VO) in timeline time")
-    lv.add_argument("--fps", type=float, default=24.0); lv.add_argument("--write", action="store_true")
+    lv.add_argument("--fps", type=float, default=None, help="the timeline's rate; else the cut plan's, else the "
+                                                             "CHECKPOINT format's (3.2.0)")
+    lv.add_argument("--write", action="store_true")
     v = sub.add_parser("verify"); v.add_argument("job"); v.add_argument("--shot", required=True)
     j = sub.add_parser("joins"); j.add_argument("job"); j.add_argument("--whoosh"); j.add_argument("--pan", default="off")
+    j.add_argument("--voice", help="(3.2.0) the voice in timeline time: a pre-lap is skipped where it speaks")
+    j.add_argument("--fps", type=float, default=None, help="(3.2.0) the timeline's rate for the markers; else the "
+                                                           "cut plan's, else the CHECKPOINT format's")
     lb = sub.add_parser("library", help="the SFX and impulse-response libraries on this machine")
     lb.add_argument("action", choices=["build", "measure", "search", "sheet", "blind", "blind-score", "pull", "ir", "list"])
     lb.add_argument("arg", nargs="*", help="build: ROOT · measure: (--name) · search: WORDS · sheet: JOB SHOT · "
@@ -2580,9 +2988,14 @@ def main() -> int:
                   + (" [capped by the peak]" if e.get("capped_by_peak") else ""))
         for w_ in r.get("warnings") or []:
             print(f"  WARN {w_}")
+        for p_ in r.get("pan_problems") or []:
+            print(f"  REFUSED pan {p_}")
+        print(f"  {r['fps']['fps']:g} fps ({r['fps']['why']}) · "
+              f"left/right {'on' if r['pan']['on'] else 'off'} ({r['pan']['why']}); clip pans are approximate · "
+              f"sheet: {r['sheet']}" + (f" · {len(r['dips'])} dip(s) before must-hits" if r.get("dips") else ""))
         print(f"density {r['density_per_min']}/min" + (f" (client: {r['client_density_per_min']}/min)" if r.get("client_density_per_min") else "")
               + f" · 09-qa/sfx/LEVELS.json" + (" · placement updated" if a.write else " · --write to apply"))
-        return 0
+        return 1 if r.get("pan_problems") else 0
     if a.cmd == "read":
         r = read_form(a.job, a.shot, a.clip, a.track)
         print(f"{r['events']} event(s) · look at {r['sheet']} and fill {r['form']} from its vocabulary")
@@ -2693,9 +3106,18 @@ def main() -> int:
                                                          if r else "no measured space fits: the synthetic tail"))
             return 0
     if a.cmd == "joins":
-        r = joins_plan(a.job, a.whoosh, a.pan)
+        r = joins_plan(a.job, a.whoosh, a.pan, fps=a.fps, voice=a.voice)
+        print(f"  left/right: {'on' if r['pan']['on'] else 'off'} ({r['pan']['why']}) · {r['fps']['fps']:g} fps "
+              f"({r['fps']['why']})")
+        for x in r.get("prelap_ignored") or []:
+            print(f"  ! {x}")
         for row in r["joins"]:
             print(f"  cut {row['n']} at {row['t']} s ({row['from']}→{row['to']}): {row['sound']} — {row['note']}")
+            pr = row.get("prelap")
+            if pr:
+                print(f"    pre-lap ({pr.get('status')}): {pr.get('note', '')}"
+                      + (f" — event {pr.get('event_check')}" if pr.get("event_check") else "")
+                      + (f" — voice {pr.get('voice_check')}" if pr.get("voice_check") else ""))
         return 0
     ap.print_help(); return 2
 

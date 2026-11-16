@@ -17,8 +17,8 @@ body:
   - type: input
     id: claude_code_version
     attributes:
-      label: Claude Code version and OS
-      placeholder: "Claude Code 2.1.301 on macOS 26.2"
+      label: App, its version, and OS
+      placeholder: "Claude Code 2.1.301 on macOS 26.2 (or Claude, Cursor, ChatGPT)"
     validations:
       required: true
   - type: textarea

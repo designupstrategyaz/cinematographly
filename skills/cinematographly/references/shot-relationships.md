@@ -58,7 +58,8 @@ cannot put a frame on the wrong side.
 | Camera before and after | an inlier-gated similarity over the last and first ~0.18 s, named from the **camera's** side | — |
 | Subject screen motion before and after | dense optical flow with the camera's motion removed | the direction flips when both sides move ≥ 0.04 frame-widths/s |
 | Where the subject is, either side | a face (OpenCV, where available) or the centroid of what moves | an eye jump of ≥ 0.35 of the frame diagonal |
-| The key light's side, either side | the brightness of the two halves of the face, or of the frame | changes side between alike pictures |
+| The key light's side, either side | the brightness of the two halves of the face, or of the frame's outer thirds | changes side between alike pictures, when both sides were measured the same way (both on a face, or both on the frame; 3.2.0) |
+| Warm/cool step (3.2.0) | the step in b\* of the near-neutral pixels (the lowest-chroma 30 % of those brighter than L\* 35): they carry the light's colour, where the frame's mean follows its objects | ≥ 6 b\* between alike pictures (content moves b\* too, hence the gate) [assumed] |
 
 ⛔ The alike measure is cast-invariant on purpose. A hue histogram calls two angles on one place under a
 mismatched grade "two places", and that hides the exact mismatch the check is for. The selftest's own
@@ -161,6 +162,7 @@ shot the same person is in**: that's what makes it a graph.
 | relation | same-scene · new-scene · return · insert · cutaway · graphic · time-jump |
 | match | action · eyeline · graphic · movement · sound · shape · colour · none |
 | axis | the 180° line kept · crossed |
+| cross_line (3.2.0, optional) | `meant`, set by the reader when the crossing is shown on screen or the shot's blocking spec sets `camera.cross_line` (the read numbers shots, so the tool cannot match a spec to a cut itself); otherwise blank, and `merge` asks one question per crossed axis inside a scene or on a return to one. `validate` warns on `meant` with an axis read as kept |
 | screen direction | kept · flipped |
 | eyeline | matched · mismatched |
 | carries | entity ids, plus light · colour · movement · sound · music · line · look |

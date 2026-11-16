@@ -6,7 +6,7 @@ Thank you for helping. Cinematographly is source-available under the Cinematogra
 ## Reporting a problem
 
 Open an issue on GitHub with: what you asked for, what happened, what you expected, the output of
-`/cinematographly:doctor`, and your Claude Code version. Leave out client names, keys and anything private.
+`/cinematographly:doctor`, and the app you use it in (Claude Code, Claude, Cursor or ChatGPT) with its version. Leave out client names, keys and anything private.
 A way past the spend gate is a security issue: see `SECURITY.md` instead of opening an issue.
 
 Final Cut Pro and Premiere Pro imports are not tested on our machines. A short report of what came through

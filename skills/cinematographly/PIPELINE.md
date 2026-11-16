@@ -105,6 +105,11 @@ Two ways to the rough cut (clips in scene order, matching VO under each, beat ma
   Fairlight work are done by computer control in Resolve's interface, never through `run_script`, and every
   SFX and edit is made in Resolve — the Python tools measure and propose (`references/editing-and-audio.md`
   § What runs through the API).
+  **3.2.0:** `cut_plan.py` reports each planned join's match-on-action distances, a motion-match B that starts
+  from rest, and the light at the proposed frames; `sfx_conform.py joins --voice` plans each `prelap:` lead-in;
+  `sfx_conform.py levels` writes `06-music/SFX-PLACEMENT.md` (clip volume, approximate clip pan when the delivery
+  has left/right on, the dips before must-hits) for the computer-control pass; `mix_qa.py measure --sfx` adds the
+  dialogue-centre and first-word WARNs.
 - **Interchange fallback — `build_fcpxml.py`:** emits an FCPXML that Resolve imports
   (File ▸ Import ▸ Timeline ▸ Import AAF, EDL, XML…). Pass `--durations` with each dissolve shot's
   *needed* (non-handle) length so real transition handle survives into the timeline — the script

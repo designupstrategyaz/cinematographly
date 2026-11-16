@@ -43,8 +43,12 @@ Resolve. House rule 9: all SFX and edits are done in Resolve, and Fairlight plac
    sound's licence from its catalogue row.
 5. **Set a starting level, room and distance** from distance, force, size and material. The dispatcher's
    `levels` run sets the final gain by measurement.
-6. **Write the proposal file.**
-7. **Return the contract.**
+6. **Say where each sound is** with a `side` word: `left`, `right`, `centre`, `off-left` or `off-right` (a source
+   outside the frame). Copy the event's `x` from the detected-events file when it has one. Never write a pan
+   number: `levels` turns the side and x into the clip pan, inside the cap, and only when the delivery has
+   left/right on.
+7. **Write the proposal file.**
+8. **Return the contract.**
 
 ## Output contract
 
@@ -56,7 +60,8 @@ The proposal is a JSON file in the placement shape `sfx_conform.py levels` reads
  "segment": "S2", "in_s": 12.0, "out_s": 19.5,
  "events": [
   {"sfx": "mug set on table", "frame": 313, "t_s": 13.042, "file": "<absolute library path>", "licence": "<licence>",
-   "volume_db": -18, "room": "kitchen, small, hard", "distance_m": 1.5, "lane": "A4", "confidence": 85}
+   "volume_db": -18, "room": "kitchen, small, hard", "distance_m": 1.5, "lane": "A4", "side": "right", "x": 0.72,
+   "confidence": 85}
  ]}
 ```
 
@@ -68,8 +73,8 @@ source.
 **BAD:** one generic "kitchen ambience" for a segment with a door, two footsteps and a set-down mug. Events are
 missed, and the bed is not this agent's job.
 
-**GOOD:** four events, each on its frame, with the door off-screen left at 4 m, quieter and with more room than
-the mug at 1.5 m.
+**GOOD:** four events, each on its frame, with the door off-screen left at 4 m (`side: off-left`), quieter and with
+more room than the mug at 1.5 m (`side: right`, its x copied).
 
 **BAD:** proposing a sound with no catalogue row, or a licence guessed from the file name. **GOOD:** the
 catalogue row's path and licence, copied as they are.

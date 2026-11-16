@@ -321,6 +321,7 @@ the join is **written into both clips before either is generated**, and measured
 | `exit:` | the outgoing clip | the screen direction of what is still moving in its last frames | `right, the jar leaving frame` |
 | `enter:` | the incoming clip | the screen direction of what moves in its first moments after the lead-in | `from left, the hand in` |
 | `join:` | the outgoing clip | how it hands off | `motion-match` · `match-on-action` · `whip` · `graphic-match` · `camera-carry` · `flip` |
+| `prelap:` (3.2.0) | the outgoing clip | the next shot's sound starts this early, before the cut (0.25–1.0 s), named by its event's read word or id in the next shot's read | `0.5s, knock, side=right` |
 
 They are §5's IN / OUT / JOIN written as data, so a script can check them. A direction is screen
 direction: left, right, up, down, toward or away from the lens.

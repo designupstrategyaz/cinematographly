@@ -1291,6 +1291,12 @@ setup:
 
 - **Cut on action and on looks.** In 38 measured ads the outgoing shot carries motion at 36 % of cuts
   and a look at 11 %, and 45 % of cuts land on an action already under way (`sequence-grammar.md` §2c).
+- **The cut plan reports both sides of each planned join (3.2.0, `cut_plan.py`).** On a `match-on-action`: how far
+  A's OUT sits from its commit, and how many frames B takes to reach its contact. On a `motion-match`: whether B
+  starts from rest (its own onset after its lead, or under the subject floor over its first 4 frames from IN). And
+  the light at the proposed frames, one row per join in `07-edit/CUTS.md`, flagged or not: colour, exposure, warm/cool (the b* step of the near-neutral pixels: whites, greys and steel carry the light's colour; the whole-frame mean follows the objects) and the key side, each only
+  between alike pictures, the key side only when both sides were measured the same way. Nothing moves; a frame it
+  cannot read says "not measured".
 - **The beat is for a few hits, not every cut.** Real ads cut on a beat no more often than chance
   (31 % of cuts against 32 %); 2 of 37 clearly cut on it (`specifics-catalogue.md` §16.6). Put the
   reveal, the product landing or the button on a hit; let the rest follow the action. Where a passage
@@ -2141,6 +2147,8 @@ render in `10-export/` has no report about its exact bytes, or a report that FAI
 | VO over bed on a phone | the same after a mono fold and a 300 Hz–7 kHz band | [assumed]. The research found no 2024–26 measurement of phone speakers |
 | Short-term ceiling | any 3 s window is more than 5 LU over the export's integrated level | [PRIMARY · EBU R 128 s1 V3 2020: −18 LUFS max short-term at −23 integrated], applied relative to the export's level, which is an extrapolation |
 | Mono fold-down | the export loses more than 3 dB folded to mono, or the dialogue windows are out of phase | [assumed]. Uncorrelated stereo folds down at −3 dB |
+| Dialogue in the centre (3.2.0, WARN) | the dialogue stem's left and right energy differ by more than 1 dB while it speaks | [assumed] |
+| First word clear of the effects (3.2.0, WARN, `--sfx`) | an effect's attack within 100 ms of a line's start (speech after 0.2 s of quiet) | [assumed] |
 | Room tone under every moment | the bed (or the ambience stem) is silent, −60 LUFS for 0.4 s, outside a planned hole | export_qc.py's silence floor |
 | No dropout at a cut | 20 ms of the bed sits 40 dB under its neighbourhood within ±0.25 s of a cut | [assumed] |
 | Ambience held across each scene (drama) | no ambience stem. A level jump over 3 LU across a cut inside one scene is a finding | [assumed] |
@@ -2408,8 +2416,22 @@ never deliverable audio.
    - **Direction flip:** a clean break.
    - **Whip:** a whoosh with its peak on the cut, 2 per ad at most.
 
-   It writes the plan and Resolve markers (EDL). `--whoosh <file>` also renders the whooshes as a stem in
-   cut time.
+   - **Pre-lap (3.2.0):** the next shot's sound starts before the cut, when the outgoing prompt asks for it
+     (`prelap: 0.5s, knock, side=right`; lead 0.25–1.0 s; the event by its read word, such as `knock` or `open`,
+     or its id, such as `E2`, in the NEXT shot's read; side optional: `left`/`right` pan ±20, `off-left`/`off-right`
+     ±40, as on the placement sheet, and only when left/right is on). It starts at the off-screen level (−4 dB,
+     low-passed at 5 kHz) and rises to full by the cut, a fade and never a step. It names one event; an ambience
+     carried across a cut is `join: camera-carry`, not a pre-lap. It is skipped where the voice speaks at any point
+     during the lead (`--voice <the voice in timeline time>`), and it WARNs when the next shot's read has no such
+     event, or (with a cut plan) has it more than 1 s after the next shot's IN: the sound would promise something
+     the picture does not show. With no read, no cut plan or no voice it says what it did not check, and a pre-lap
+     on the last shot is named as ignored. On a phone this is the directional cue that survives: the ear turns
+     before the eye.
+
+   It writes the plan and Resolve markers (EDL, a PRELAP marker where each lead-in starts) at the timeline's rate:
+   `--fps`, else the cut plan's, else the CHECKPOINT format's, else 24 and the report says it was assumed (the
+   same for `levels`' frames). `--whoosh <file>`
+   also renders the whooshes as a stem in cut time (a proof, rule 9).
 
 **What sets each sound:**
 
@@ -2426,14 +2448,40 @@ never deliverable audio.
 | Slide or hit | a slide keeps the sound running to the settle | the pixels (how long the change lasts) |
 | Variation | ±1 dB jitter; never the same piece twice in a row | always |
 | Phone low end | a 120 Hz high-pass on every event | always (the mix gate's phone simulation checks the rest) |
-| Lateral position | constant-power pan capped at ±0.4, which folds to mono about 0.4 dB down | `--pan follow` only; off by default |
+| Lateral position | constant-power pan capped at ±0.4, which folds to mono about 0.4 dB down | `--pan follow` in the conform's proof; on the placement sheet it follows the delivery (below) |
 
 **Directional sound is for earbuds and headphones.** No 2024–26 measurement of phone stereo in portrait
-was found, and the two speakers sit top and bottom [UNVERIFIED]. So pan stays off for phone-only ads.
-Where it pays, in a 16:9 drama on headphones or an earbud cut:
+was found, and the two speakers sit top and bottom [UNVERIFIED]. So left/right follows the delivery (3.2.0,
+`sfx_conform.pan_mode`): **on** for a 16:9 delivery, **off** for 9:16, 4:5 and 1:1, and the job's CHECKPOINT
+`Pan: on|off` line wins (a headphone cut, or a vertical job that wants it). Distance, the off-screen treatment,
+the pre-lap and presence are on for every delivery: a phone speaker hears them.
 
-- **The script bakes it.** `--pan follow` pans each hit to where it happens. Resolve's scripting API has no
-  audio automation, so any movement inside a clip must be baked.
+Where each kind of sound sits (3.2.0):
+
+| Lane | Placement | Checked by |
+|---|---|---|
+| Dialogue / VO (A1–A2) | centre, always | `mix_qa.py measure`: WARN when left and right differ by more than 1 dB while it speaks (level only: a location reverb send is decorrelated by design) |
+| SFX (A4) | where the source is, inside ±40 | the placement sheet (below); the conform's ±0.4 cap |
+| Ambience (A3) | wide, unpanned | the room-tone check |
+| Music (A5) | as the track was mixed | never touched |
+
+- **The placement sheet carries the pan.** The spotter writes a `side` word per sound (`left`, `right`,
+  `centre`, `off-left`, `off-right`) and copies the event's `x`; `sfx_conform.py levels` turns them into a clip
+  pan in Resolve's units, capped at ±40 (x 0.9 → +32; off-screen → ±40; a side with no x → ±20), refuses a row
+  with no side when left/right is on, and writes `06-music/SFX-PLACEMENT.md` beside the placement: frame, clip volume,
+  clip pan, for the computer-control pass in Fairlight. **The values are approximate** until Resolve's own pan
+  law is measured (one pink-noise test render at ±40, started by a person). Resolve's scripting API can set a
+  clip's fixed `AudioPan` and `AudioVolume`, but the clip's audio is Fairlight work (rule 8), so the gate
+  denies it and the sheet is applied by computer control. The API has no audio automation at all, so a pan that
+  MOVES inside a clip is hand work (below); a Python render of it is a proof, never the deliverable (rule 9).
+- **The first word stays clear.** `mix_qa.py measure --sfx <the effects stem>` WARNs when an effect's attack
+  lands within 100 ms of a line's first syllable [assumed]: the word under a hit is the word nobody hears. It finds
+  attacks the way the conform does, so a very quiet effect far under the loudest one is not seen.
+- **The dip before a hit.** A must-hit in `07-edit/music/HITS.json` marked `"dip": "yes"` gets a 1–3 frame dip
+  of the ambience bed before it on the placement sheet (§ Action points: "the bed dipped for 1–3 frames before
+  it"). It is not a planned hole: the room-tone check only counts silence of 0.4 s.
+Sound that MOVES across the frame (a car passing, someone walking past) is not planned by the tools yet:
+
 - **The editor does it by hand,** on up to five hero moments, with IntelliTrack (Resolve 19+, Studio
   only) [PRIMARY · Blackmagic, Resolve 19 New Features Guide]:
   1. Turn on Toggle Automation above the Fairlight tools.
@@ -2871,7 +2919,8 @@ native title — a deny, not an ask; no `allow resolve` allowance covers it. It 
   (`InstallFile`); any call other than a `Get…`/`Find…` read on a Fusion object, or an assignment to one
   (`tool.StyledText = …`, `SetInput`, `AddTool`, `Lock`, `AddFont`); a Fusion effect or transition added;
   Fairlight calls (`ApplyFairlightPresetToCurrentTimeline`, `InsertAudioToCurrentTrackAtPlayhead`,
-  `SetVoiceIsolationState`);
+  `SetVoiceIsolationState`), and (3.2.0) a clip's audio set by `SetProperty`/`SetProperties` (`AudioVolume`,
+  `AudioPan`, `AudioPitch…`, voice isolation, the dialogue leveler); reading them back stays open;
 - **open:** reads of all of it (a title's words and font read back, the comp list, the Loaders after an
   import), markers, clip fades, track setup, media import, the Subtitle-track `.srt`;
 - a console toggle set `False`, a loop over an empty plan and a helper nothing live calls are not counted, so

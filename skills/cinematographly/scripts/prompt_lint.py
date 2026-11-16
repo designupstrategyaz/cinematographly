@@ -530,6 +530,33 @@ AMBIENT_VERBS = (r"drift\w*|float\w*|hover\w*|hang\w*|waft\w*|swirl\w*|shimmer\w
 # do it and the manner that forces (`INTENT:`), the person leads every line, and the material is the
 # consequence of their force, never the subject. motion-craft.md §6b has the method and the bundles.
 TRACK_RE = re.compile(r"^\s*([\w .-]+?)\s*(?:=|@)\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*$")
+PRELAP_MIN_S, PRELAP_MAX_S = 0.25, 1.0   # (3.2.0) the lead of a pre-lap [PRACTITIONER, assumed range]
+
+
+def parse_prelap(v) -> tuple:
+    """(3.2.0) `prelap: 0.5s, knock, side=right` → ({"lead_s", "event", "side"}, None), or (None, why). The lead is in
+    seconds so a frame rate cannot change it; the event is the next shot's sound by its read word or id; the side is
+    optional (left, right, off-left, off-right)."""
+    parts = [x.strip() for x in str(v or "").split(",") if x.strip()]
+    if not parts:
+        return None, "empty"
+    m = re.fullmatch(r"(\d+(?:\.\d+)?)\s*s?", parts[0].lower())
+    if not m:
+        return None, "start with the lead in seconds: \"0.5s, knock\""
+    lead = float(m.group(1))
+    if not PRELAP_MIN_S <= lead <= PRELAP_MAX_S:
+        return None, f"a lead of {lead:g} s is outside {PRELAP_MIN_S:g}–{PRELAP_MAX_S:g} s"
+    ev, side = "", None
+    for x in parts[1:]:
+        if x.lower().startswith("side="):
+            side = x.split("=", 1)[1].strip().lower()
+            if side not in ("left", "right", "off-left", "off-right"):
+                return None, f"side={side!r}: left, right, off-left or off-right"
+        elif not ev:
+            ev = x
+    if not ev:
+        return None, "name the next shot's sound event by its read word or id: \"0.5s, knock\""
+    return {"lead_s": lead, "event": ev, "side": side}, None
 # shot-handoff.md §4b: a `join:` that carries motion across the cut, and what counts as a screen direction
 HANDOFF_MOTION_RE = re.compile(r"(?i)\b(motion|action|whip|vector|push-through|carry|carries|continu)")
 HANDOFF_DIR_RE = re.compile(r"(?i)\b(left|right|up|down|upward|downward|toward|towards|away|into (?:the )?lens|"
@@ -2441,6 +2468,11 @@ def lint(path: str, job_root: str | None = None) -> dict:
             W("`exit:` hands motion to the next shot and the MOTION END line settles — a motion hand-off cuts "
               "while the action is still running; let END keep moving, and the edit cuts before any settle "
               "(shot-handoff.md §4b)")
+        # (3.2.0) the sound that leads the eye into the next shot: `prelap: 0.5s, knock, side=right`
+        if str(fm.get("prelap") or "").strip():
+            _pl, _why = parse_prelap(fm.get("prelap"))
+            if _why:
+                W(f"`prelap: {str(fm.get('prelap'))[:40]}` — {_why} (sfx_conform.py joins; editing-and-audio.md §7f)")
         # named objects motion_qa.py follows (2026-10-26: track a specific object, boxed on frame one)
         for _spec in [t for t in re.split(r"\s*;\s*", str(fm.get("track") or "")) if t.strip()]:
             _tm = TRACK_RE.match(_spec)
@@ -3815,6 +3847,10 @@ enter:                    # OPTIONAL — screen direction of what moves in the f
 exit:                     # OPTIONAL — screen direction of what still moves in the last frames: "right, the jar leaving"
 join:                     # OPTIONAL — the hand-off to the next shot: motion-match | match-on-action | whip |
                           # graphic-match | camera-carry | flip (a deliberate reversal) — shot-handoff.md §4b
+prelap:                   # OPTIONAL (3.2.0) — the next shot's sound starts before the cut: "0.5s, knock, side=right"
+                          # (lead 0.25–1.0 s; the event by its read word, e.g. knock / open, or id, e.g. E2, in the
+                          # NEXT shot's read; side optional)
+                          # — sfx_conform.py joins; editing-and-audio.md §7f
 track:                    # OPTIONAL — objects motion_qa.py follows: "jar=0.42,0.55,0.12,0.20; cup=…" (the box on
                           # the start frame, fractions from the top-left)
 sfx:                      # OPTIONAL — the sound the shot makes, for sfx_conform.py: "count=3, surface=wet,
@@ -4747,6 +4783,13 @@ def selftest() -> int:
             (cl_ok if end is None else cl_ok.replace("END: tray set down on the bench", f"END: {end}"))
             .replace("duration: 5\n", "duration: 5\ncut: 3\n" + extra), td, "S9.clip.prompt.md")["warns"]
         assert any("has no `exit:`" in w for w in _ho("join: motion-match\n")), "a motion join with no exit"
+        # (3.2.0) the pre-lap field
+        assert parse_prelap("0.5s, door, side=right") == ({"lead_s": 0.5, "event": "door", "side": "right"}, None)
+        assert parse_prelap("2s, door")[0] is None and parse_prelap("door")[0] is None and parse_prelap("0.5")[0] is None
+        assert parse_prelap("0.5s, door, side=up")[0] is None
+        assert parse_prelap("0.25s, E2")[0] and parse_prelap("1s, knock, side=off-left")[0]["side"] == "off-left"
+        assert any("`prelap:" in w for w in _ho("prelap: 3s, door\n")), "a lead outside 0.25–1 s warns"
+        assert not any("`prelap:" in w for w in _ho("prelap: 0.5s, door\n")), "a good pre-lap is quiet"
         assert not any("`exit:`" in w or "screen direction" in w
                        for w in _ho("join: motion-match\nexit: right, the tray leaving frame\n",
                                     "the tray still sliding right as the clip ends")), "a planned hand-off lints clean"

@@ -31,6 +31,15 @@ The rules, in order:
      `reverse`), and each named `track:` object sampled at the PROPOSED out and in — a jump over motion_qa.OBJ_JUMP on
      a motion/action/graphic/carry join, or exit and enter directions that disagree. Screen direction across the cut
      is still measured on the rough assembly (`motion_qa.py cut`).
+  6. (3.2.0) The doctrine at each join, reported, never moved (shot-handoff.md §4b):
+       match-on-action  A carries the commit, B the contact: A's OUT minus its commit (cut_point), and B's frames
+                        from IN to its contact. No speed test: B's first frames are the stop, and a close-up's screen
+                        speed is not a wide's.
+       motion-match     B is caught mid-movement: "B starts from rest" when B has its own onset after its lead, or
+                        its speed over the 4 frames from IN (total, any direction; a shared `track:` object's when
+                        both shots have one) is under shot_graph's subject floor.
+     And the light at the proposed frames (A's last, B's first): colour, exposure, warm/cool and key side, each only
+     between alike pictures (shot_graph.light_flags). A frame that cannot be read says "not measured".
 """
 from __future__ import annotations
 import argparse, datetime as dt, glob, json, math, os, re, subprocess, sys, tempfile
@@ -176,12 +185,150 @@ def default_tracker(job: str):
     return track
 
 
-def plan_joins(reps: list, recs: list, R: Fraction, tracker) -> list:
+SPEED_FRAMES = 4               # (3.2.0) B's speed is read over this many frames from its IN [assumed]
+
+
+def default_measurer(job: str):
+    """(3.2.0) The pixels at one proposed join: the light (A's last frame, B's first) and B's subject speed over
+    SPEED_FRAMES from its IN, from a shared named track when there is one. Every failure is said, never swallowed."""
+    def measure(ra: dict, a: dict, rb: dict, b: dict, R: Fraction, track=None) -> dict:
+        out = {}
+        fa, fb = os.path.join(job, ra.get("file") or ""), os.path.join(job, rb.get("file") or "")
+        missing = [x for x in (fa, fb) if not os.path.isfile(x)]
+        if missing:
+            why = "no file " + ", ".join(os.path.relpath(x, job) for x in missing)
+            return {"light": {"unmeasured": why}, "b_speed": None, "b_speed_unmeasured": why}
+        try:
+            import shot_graph as SG
+            SG._need()
+        except (SystemExit, Exception) as e:                     # noqa: BLE001
+            why = f"no OpenCV/numpy ({e})"
+            return {"light": {"unmeasured": why}, "b_speed": None, "b_speed_unmeasured": why}
+        try:
+            ia, ib = SG.probe(fa), SG.probe(fb)
+            t_out, t_in = float(a["out"]) / R, float(b["in"]) / R
+            wa = SG.decode(fa, max(0.0, t_out - 3.0 / float(R)), t_out, ia)
+            wb = SG.decode(fb, t_in, t_in + 1.5 / float(R), ib)
+            if not wa or not wb:
+                raise ValueError("no frame decoded at " + ("A's OUT" if not wa else "B's IN"))
+            fo, fi = wa[-1][1], wb[0][1]
+            casc = SG._cascade()
+            co, ci = SG.colour_stats(fo), SG.colour_stats(fi)
+            lo, li = SG.light_stats(fo, SG.face_pos(fo, casc)), SG.light_stats(fi, SG.face_pos(fi, casc))
+            sim = SG.shape_sim(co["_shape"], ci["_shape"])
+            out["light"] = {"look_sim": round(sim, 3), "luma_step": round(ci["luma"] - co["luma"], 1),
+                            "b_step": (round(li["b_neutral"] - lo["b_neutral"], 1) if li.get("b_neutral") is not None
+                                       and lo.get("b_neutral") is not None else None),
+                            "key_side": [lo["key_side"], li["key_side"]], "key_on": [lo["key_on"], li["key_on"]],
+                            "flags": SG.light_flags(co, ci, lo, li, sim)}
+        except (SystemExit, Exception) as e:                     # noqa: BLE001
+            out["light"] = {"unmeasured": f"{type(e).__name__}: {e}"}
+        try:
+            ib = SG.probe(fb)
+            t0, t1 = float(b["in"]) / R, float(b["in"] + SPEED_FRAMES) / R
+            names = [track] if isinstance(track, str) else list(track or [])
+            boxes = [(n, ((rb.get("objects") or {}).get(n) or {}).get("box")) for n in names]
+            boxes = [(n, bx) for n, bx in boxes if bx]
+            if boxes:
+                # each box is drawn on the clip's FIRST frame, so its track starts there; the speed is read from its
+                # samples between IN and IN + SPEED_FRAMES; with several shared tracks, the fastest one speaks
+                half = 0.5 / float(R)
+                best = None
+                for n, bx in boxes:
+                    tr = MQ.track_object(fb, ib, tuple(bx), 0.0, t1 + 0.5 / float(R))
+                    S = [x for x in tr.get("samples", []) if x.get("ok") and t0 - half <= x["t"] <= t1 + half]
+                    if len(S) < 2:
+                        continue
+                    dt_ = max(1e-3, S[-1]["t"] - S[0]["t"])
+                    v = round(math.hypot(S[-1]["cx"] - S[0]["cx"], S[-1]["cy"] - S[0]["cy"]) / dt_, 4)
+                    if best is None or v > best[1]:
+                        best = (n, v)
+                if best is None:
+                    raise ValueError(f"track(s) {', '.join(repr(n) for n, _ in boxes)} lost over B's first frames")
+                out["b_speed"], out["b_speed_how"] = best[1], f"track {best[0]!r}"
+            else:
+                w = SG.decode(fb, t0, t1 + 0.5 / float(R), ib)
+                if len(w) < 2:
+                    raise ValueError("fewer than 2 frames decoded from B's IN")
+                m = SG.motion(w[0][1], w[-1][1], max(1e-3, w[-1][0] - w[0][0]))
+                sj = m.get("subj") or {}
+                out["b_speed"] = round(math.hypot(sj.get("vx", 0.0), sj.get("vy", 0.0)), 4) if sj else 0.0
+                out["b_speed_how"] = "residual flow"
+        except (SystemExit, Exception) as e:                     # noqa: BLE001
+            out["b_speed"], out["b_speed_unmeasured"] = None, f"{type(e).__name__}: {e}"
+        return out
+    return measure
+
+
+def _subject_floor() -> float:
+    try:
+        import shot_graph as SG
+        return float(SG.TH["subject_v"])
+    except Exception:                                            # noqa: BLE001
+        return 0.04
+
+
+def doctrine(ra: dict, a: dict, rb: dict, b: dict, R: Fraction, jn: str, meas: dict | None) -> tuple[dict, list]:
+    """(3.2.0) What the join's doctrine asks, against the proposed frames: (numbers, findings). Reports; moves
+    nothing. Thresholds for calling a match-on-action distance large wait for real footage."""
+    nums, F = {}, []
+    if "action" in jn:                                           # match-on-action
+        cp = ((ra.get("action") or {}).get("cut_point") or {}).get("t")
+        ct = ((rb.get("action") or {}).get("contact") or {}).get("t")
+        if cp is not None and "out" in a:
+            nums["a_out_minus_commit"] = int(a["out"] - to_frame(float(cp), R))
+        if ct is not None and "in" in b:
+            nums["b_frames_to_contact"] = int(to_frame(float(ct), R) - b["in"])
+        if "a_out_minus_commit" not in nums or "b_frames_to_contact" not in nums:
+            F.append("match on action: not measured (" + ", ".join(
+                x for x, k in (("A's commit", "a_out_minus_commit"), ("B's contact", "b_frames_to_contact"))
+                if k not in nums) + " missing from the take report)")
+    elif "motion" in jn:                                         # motion-match
+        pb = rb.get("plan") or {}
+        onset = float(((rb.get("action") or {}).get("onset") or {}).get("t") or 0.0)
+        lead = float(pb.get("in_t") or 0.5)
+        typ = str(pb.get("type") or "").lower()
+        if typ in NO_ACTION_TYPES:
+            nums["b_rest_test"] = "skipped: B is a talking or reaction shot"
+        elif onset > lead:
+            F.append(f"motion match: B starts from rest — its own motion begins {onset:.2f} s in, after its "
+                     f"{lead:g} s lead; generate B already moving (caught mid-movement, shot-handoff.md §4b)")
+        elif meas is None:
+            F.append("motion match: B's speed not measured (no frames proposed for this join yet, or no measurer)")
+        else:
+            sp = meas.get("b_speed")
+            if sp is None:
+                F.append(f"motion match: B's speed not measured ({meas.get('b_speed_unmeasured')})")
+            else:
+                nums["b_speed"], nums["b_speed_how"] = sp, meas.get("b_speed_how")
+                if sp < _subject_floor():
+                    F.append(f"motion match: B starts from rest — {sp:.3f} frame-widths/s over its first "
+                             f"{SPEED_FRAMES} frames ({meas.get('b_speed_how')}), under {_subject_floor():g}")
+    return nums, F
+
+
+def plan_joins(reps: list, recs: list, R: Fraction, tracker, measurer=None) -> list:
     out = []
     for (ra, a), (rb, b) in zip(zip(reps, recs), zip(reps[1:], recs[1:])):
         pa, pb = ra.get("plan") or {}, rb.get("plan") or {}
         jn = str(pa.get("join") or "").lower()
         row = {"from": a["shot"], "to": b["shot"], "join": jn, "findings": []}
+        shared = sorted(set(ra.get("objects") or {}) & set(rb.get("objects") or {}))
+        meas = None
+        if measurer and not a.get("unresolved") and not b.get("unresolved") and "out" in a and "in" in b:
+            meas = measurer(ra, a, rb, b, R, shared or None)
+            lt = meas.get("light") or {}
+            row["light"] = lt
+            if lt.get("unmeasured"):
+                row["findings"].append(f"light at the proposed frames: not measured ({lt['unmeasured']})")
+            for f in lt.get("flags") or []:
+                row["findings"].append(f"light at the proposed frames: {f}")
+        elif measurer:
+            row["light"] = {"unmeasured": "a side is unresolved: no frames proposed yet"}
+        nums, F = doctrine(ra, a, rb, b, R, jn, meas)
+        if nums:
+            row["doctrine"] = nums
+        row["findings"].extend(F)
         why = MQ._join_ok(str(pa.get("exit") or ""), str(pb.get("enter") or ""), jn, "")
         if why:
             row["findings"].append(why)
@@ -251,14 +398,15 @@ def voice_for(job: str, shot: str) -> str | None:
     return None
 
 
-def plan_job(job: str, R: Fraction, shots: list | None = None, tracker=None) -> dict:
+def plan_job(job: str, R: Fraction, shots: list | None = None, tracker=None, measurer=None) -> dict:
     reps, missing = load_reps(job, shots)
     res = resolutions(job)
     recs = [plan_shot(r, R, res.get(r.get("shot"))) for r in reps]
     for s in missing:
         recs.append({"shot": s, "unresolved": {"why": "no take report — run `motion_qa.py clip` on its select",
                                                "frames": None, "choices": []}, "findings": []})
-    joins = plan_joins(reps, recs[:len(reps)], R, tracker or default_tracker(job))
+    joins = plan_joins(reps, recs[:len(reps)], R, tracker or default_tracker(job),
+                       measurer if measurer is not None else default_measurer(job))
     for r in recs:
         vo = voice_for(job, r["shot"]) if r.get("cut_frames") else None
         if vo:
@@ -317,6 +465,28 @@ def render_md(c: dict) -> str:
         L.append(f"| {r['shot']} | {r['in']} | {r['out']} | {r['used']} | {r['head']} | {r['tail']} | "
                  f"{r['confidence']} | {'; '.join(notes)} |")
     jf = [f"- {j['from']} → {j['to']}: {f}" for j in c["joins"] for f in j["findings"]]
+    for j in c["joins"]:
+        d = j.get("doctrine") or {}
+        parts = ([f"A's OUT is {d['a_out_minus_commit']:+d} f from its commit"] if "a_out_minus_commit" in d else []) + \
+                ([f"B reaches its contact {d['b_frames_to_contact']} f after its IN"] if "b_frames_to_contact" in d else [])
+        if parts:
+            jf.append(f"- {j['from']} → {j['to']} (match on action): " + "; ".join(parts))
+    lr = []
+    for j in c["joins"]:
+        lt = j.get("light")
+        if lt is None:
+            continue
+        if lt.get("unmeasured"):
+            lr.append(f"| {j['from']} → {j['to']} | not measured: {lt['unmeasured']} | | | |")
+            continue
+        bs = "not measured (no neutral or too dark)" if lt.get("b_step") is None else f"{lt['b_step']:+.1f}"
+        lr.append(f"| {j['from']} → {j['to']} | {lt.get('look_sim')} | {lt.get('luma_step'):+.1f} | {bs} | "
+                  f"{' → '.join(lt.get('key_side') or [])} ({'/'.join(lt.get('key_on') or [])}) |")
+    if lr:
+        L += ["", "## Light at the proposed frames (3.2.0)", "",
+              "Each measured join, flagged or not: palette alike (≥ 0.60 compares), luma step (0–255), warm/cool step "
+              "(b* of the near-neutral pixels), key side (measured on).", "",
+              "| Join | alike | luma | warm/cool | key side |", "|---|---|---|---|---|", *lr]
     L += ["", "## Joins (planned, before any cut exists)", *(jf or ["- none flagged"]),
           "", "Screen direction across each cut is measured on the rough assembly: `motion_qa.py cut`."]
     if c.get("music"):
@@ -432,6 +602,112 @@ def selftest() -> int:
     # no tracker answer → the prompt-window numbers, said so
     j = plan_joins([a, b], [ra, rb], R, lambda *x: None)[0]
     assert not any("jumps" in f for f in j["findings"]), "no samples in the report: nothing measured"
+    # 7. (3.2.0) the doctrine at the join, reported, never moved
+    A = _rep("A", onset=1.2, peak=2.0, join="match-on-action")
+    B = _rep("B", onset=0.3, peak=0.5); B["action"]["contact"] = {"t": 1.0}
+    rA, rB = plan_shot(A, R), plan_shot(B, R)
+    nums, F = doctrine(A, rA, B, rB, R, "match-on-action", None)
+    assert nums["a_out_minus_commit"] == rA["out"] - to_frame(2.0 + 5 / 24, R), nums
+    assert nums["b_frames_to_contact"] == to_frame(1.0, R) - rB["in"] and not F, (nums, F)
+    assert rA["in"] == plan_shot(A, R)["in"] and rA["out"] == plan_shot(A, R)["out"], "nothing moved"
+    nums, F = doctrine(A, rA, _rep("B2", onset=0.3), plan_shot(_rep("B2", onset=0.3), R), R, "match-on-action", None)
+    assert any("not measured" in f and "B's contact" in f for f in F), F
+    Bm = _rep("B3", onset=1.2)                                     # own onset after the 0.5 s lead
+    nums, F = doctrine(A, rA, Bm, plan_shot(Bm, R), R, "motion-match", {"b_speed": 0.5, "b_speed_how": "residual flow"})
+    assert any("starts from rest" in f and "after its" in f for f in F), F
+    Bk = _rep("B4", onset=0.3)                                     # already moving at the lead
+    rBk = plan_shot(Bk, R)
+    assert not doctrine(A, rA, Bk, rBk, R, "motion-match", {"b_speed": 0.2, "b_speed_how": "x"})[1]
+    F = doctrine(A, rA, Bk, rBk, R, "motion-match", {"b_speed": 0.01, "b_speed_how": "residual flow"})[1]
+    assert any("starts from rest" in f and "0.010" in f for f in F), F
+    F = doctrine(A, rA, Bk, rBk, R, "motion-match", {"b_speed": None, "b_speed_unmeasured": "no file"})[1]
+    assert any("not measured" in f for f in F), F
+    assert not any("rest" in f for f in doctrine(A, rA, Bm, plan_shot(Bm, R), R, "match-on-action", None)[1]), \
+        "no rest test on a match on action: B carries the stop"
+    assert any("not measured" in f for f in doctrine(A, rA, Bk, rBk, R, "motion-match", None)[1]), "silence is a finding"
+    Bt = _rep("B5", typ="dialogue", onset=2.0)
+    nt, Ft = doctrine(A, rA, Bt, plan_shot(Bt, R), R, "motion-match", {"b_speed": 0.0, "b_speed_how": "x"})
+    assert not Ft and "skipped" in nt.get("b_rest_test", ""), (nt, Ft)
+    # plan_joins wiring: the light row, a "not measured" light, and an unresolved side
+    stub = lambda ra, a, rb, b, R_, tr=None: {"light": {"flags": ["warm/cool step x"]}, "b_speed": 0.2}  # noqa: E731
+    jw = plan_joins([A, Bk], [rA, rBk], R, lambda *x: None, stub)[0]
+    assert jw["light"]["flags"] and any("light at the proposed frames: warm/cool" in f for f in jw["findings"]), jw
+    jn = plan_joins([A, Bk], [rA, rBk], R, lambda *x: None, lambda *x: {"light": {"unmeasured": "no file x"}})[0]
+    assert any("not measured (no file x)" in f for f in jn["findings"]), jn
+    ju = plan_joins([A, long], [rA, plan_shot(long, R)], R, lambda *x: None, stub)[0]
+    assert "unresolved" in ju["light"]["unmeasured"], ju
+    md_ = render_md({"job": "x", "rate": "24", "made": "now", "shots": [], "music": None,
+                     "joins": [{"from": "A", "to": "B", "findings": [],
+                                "doctrine": {"a_out_minus_commit": 3, "b_frames_to_contact": 7}}]})
+    assert "A's OUT is +3 f from its commit; B reaches its contact 7 f after its IN" in md_, md_
+    md_ = render_md({"job": "x", "rate": "24", "made": "now", "shots": [], "music": None,
+                     "joins": [{"from": "A", "to": "B", "findings": [], "doctrine": {"a_out_minus_commit": 3},
+                                "light": {"look_sim": 0.8, "luma_step": -2.0, "b_step": 4.0, "key_side": ["left", "left"],
+                                          "key_on": ["face", "face"], "flags": []}},
+                               {"from": "B", "to": "C", "findings": [], "light": {"unmeasured": "no file x"}}]})
+    assert "A's OUT is +3 f from its commit" in md_ and "contact" not in md_.split("match on action")[1].split("\n")[0], md_
+    assert "| A → B | 0.8 | -2.0 | +4.0 |" in md_ and "not measured: no file x" in md_, md_
+    # the measurer on real pixels: an alike pair shifted cool, B moving or still from its IN; a missing file says so
+    try:
+        import shot_graph as SG
+        np_, cv2_ = SG._need()
+    except (SystemExit, Exception):                                # noqa: BLE001
+        np_ = None
+    if np_ is not None and __import__("shutil").which("ffmpeg"):
+        with tempfile.TemporaryDirectory() as td:
+            W_, H_, fps_ = 320, 180, 24
+            rng = np_.random.default_rng(3)
+            wall = cv2_.GaussianBlur(rng.integers(60, 200, (H_, W_, 1)).repeat(3, axis=2).astype(np_.uint8),
+                                     (5, 5), 0)                   # a grey (neutral) textured wall
+
+            def clip(name, cast, moving, from_k=0):
+                fr = []
+                for k in range(fps_ * 3):
+                    on = k >= from_k                               # the cast and the motion start at frame from_k
+                    bg = (wall.astype(np_.int16) + np_.array(cast if on else (0, 0, 0))).clip(0, 255).astype(np_.uint8)
+                    x = 40 + ((k - from_k) * 6 if (moving and on) else 0)
+                    cv2_.rectangle(bg, (x, 70), (x + 28, 110), (20, 20, 230), -1)
+                    fr.append(bg)
+                os.makedirs(os.path.join(td, "03-clips"), exist_ok=True)
+                pth = os.path.join(td, "03-clips", f"{name}_v1.mp4")
+                pr = subprocess.Popen(["ffmpeg", "-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "bgr24", "-s",
+                                       f"{W_}x{H_}", "-r", str(fps_), "-i", "-", "-pix_fmt", "yuv420p", "-c:v", "mpeg4",
+                                       "-q:v", "2", pth], stdin=subprocess.PIPE)
+                for f_ in fr:
+                    pr.stdin.write(f_.tobytes())
+                pr.stdin.close(); pr.wait()
+            clip("A", (0, 0, 0), True)
+            clip("B", (40, -10, -25), True)                      # BGR: bluer → cooler; the same wall
+            clip("C", (0, 0, 0), False)
+            clip("D", (40, -10, -25), True, from_k=12)          # still and uncast in its lead, then both from frame 12
+            M_ = default_measurer(td)
+            ra_ = {"shot": "A", "file": "03-clips/A_v1.mp4", "objects": {}}
+            mv = M_(ra_, {"out": 40}, {"shot": "B", "file": "03-clips/B_v1.mp4", "objects": {}}, {"in": 12}, R)
+            assert any("warm/cool" in f and "cooler" in f for f in mv["light"].get("flags", [])), mv
+            assert mv["b_speed"] is not None and mv["b_speed"] > _subject_floor(), mv
+            st = M_(ra_, {"out": 40}, {"shot": "C", "file": "03-clips/C_v1.mp4", "objects": {}}, {"in": 12}, R)
+            assert st["b_speed"] is not None and st["b_speed"] < _subject_floor(), st
+            assert not any("warm/cool" in f for f in st["light"].get("flags", [])), st
+            tk = M_(ra_, {"out": 40}, {"shot": "B", "file": "03-clips/B_v1.mp4",
+                                      "objects": {"box": {"box": [0.12, 0.38, 0.1, 0.24]}}}, {"in": 12}, R, "box")
+            assert tk.get("b_speed_how") == "track 'box'" and (tk["b_speed"] or 0) > _subject_floor(), tk
+            two = M_(ra_, {"out": 40}, {"shot": "B", "file": "03-clips/B_v1.mp4",
+                                       "objects": {"box": {"box": [0.12, 0.38, 0.1, 0.24]},
+                                                   "wall": {"box": [0.70, 0.10, 0.15, 0.25]}}}, {"in": 12}, R,
+                     ["wall", "box"])
+            assert two.get("b_speed_how") == "track 'box'", two          # the faster of two shared tracks speaks
+            rd_ = {"shot": "D", "file": "03-clips/D_v1.mp4", "objects": {}}
+            d_in = M_(ra_, {"out": 40}, rd_, {"in": 13}, R)                # IN on the moving, cast frames
+            d_lead = M_(ra_, {"out": 40}, rd_, {"in": 2}, R)               # IN inside the still, uncast lead
+            assert any("warm/cool" in f for f in d_in["light"].get("flags", [])) and d_in["b_speed"] > _subject_floor() \
+                and not any("warm/cool" in f for f in d_lead["light"].get("flags", [])) \
+                and d_lead["b_speed"] < _subject_floor(), (d_in, d_lead)  # the frames read are B's at its IN
+            gone = M_(ra_, {"out": 40}, {"shot": "Z", "file": "03-clips/Z_v1.mp4", "objects": {}}, {"in": 12}, R)
+            assert "no file" in gone["light"]["unmeasured"] and gone["b_speed"] is None, gone
+        print("  (3.2.0) the join measurer ran on synthetic clips: warm/cool flag, B moving and still, a track, a "
+              "missing file")
+    else:
+        print("  (3.2.0) the join measurer's pixel test SKIPPED: no OpenCV/numpy or ffmpeg")
     # 6. the job: CUTS.json written, self-check, the unresolved shot blocks; resolve needs the person's words
     with tempfile.TemporaryDirectory() as td:
         job = os.path.join(td, "acme-01001-x")
@@ -463,7 +739,8 @@ def selftest() -> int:
           "action longer than cut: is unresolved (one frame over is rounding); a recorded regenerate on the same take "
           "clears nothing, a trim on the same numbers does, a trim for another take is stale; a too-short take, a "
           "talking shot and no onset are handled; NO TAIL and a short tail reported; a rational rate converts once; "
-          "joins: a planned flip and an object jump sampled at the proposed frames; CUTS.json self-check; resolve "
+          "joins: a planned flip and an object jump sampled at the proposed frames; (3.2.0) the match-on-action "
+          "distances, the motion-match rest test, the light at the proposed frames; CUTS.json self-check; resolve "
           "needs the person's own words")
     return 0
 

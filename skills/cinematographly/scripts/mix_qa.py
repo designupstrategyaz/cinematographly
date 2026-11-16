@@ -69,7 +69,7 @@ to calibrate them. A floor can be changed for one job with `--floor-music N --wh
 reason goes into the report.
 """
 from __future__ import annotations
-import argparse, datetime as dt, glob, hashlib, json, os, re, subprocess, sys, tempfile
+import argparse, datetime as dt, glob, hashlib, json, math, os, re, subprocess, sys, tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKILL = os.path.dirname(HERE)
@@ -98,6 +98,9 @@ SILENCE_LUFS, SILENCE_S = -60.0, 0.4    # the same floor export_qc.py uses for a
 DROP_DB, DROP_MS, DROP_WIN = -40.0, 20, 0.25   # a dropout at a cut: 20 ms 40 dB under its neighbourhood [assumed]
 CLICK_X, CLICK_WIN = 12.0, 0.5          # a sample step 12× the local median step, near a cut [assumed]
 ROOM_JUMP = 3.0         # LU; the ambience level either side of a cut inside one scene [assumed]
+CENTRE_DB = 1.0         # (3.2.0) dialogue: left and right energy within this while it speaks [assumed]
+FIRST_WORD_S = 0.10     # (3.2.0) an SFX attack this close to a line's first syllable masks it [assumed]
+LINE_GAP_S = 0.20       # (3.2.0) a line starts after at least this much silence on the dialogue stem [assumed]
 NATIVE_NCC = 0.3        # normalised cross-correlation that says a clip's own audio is in the mix [assumed]
 AUDIO_DIRS = ("05-voice", "06-music", "06-sfx")
 AUDIO_EXT = (".wav", ".mp3", ".aif", ".aiff", ".flac", ".m4a", ".ogg", ".opus")
@@ -342,6 +345,59 @@ def clicks(x, cuts: list, sr: int = SR) -> list:
         if d[k] > CLICK_X * med and d[k] > 10 ** (-40 / 20):
             out.append({"cut": round(c, 2), "at": round((a0 + k) / sr, 3), "step_x": round(float(d[k] / med), 1)})
     return out
+
+
+SPEECH_FLOOR_DB = -60.0  # (3.2.0) a hop under this (dBFS power) is never speech, whatever the stem's loud level [assumed]
+
+
+def _speaking(x, sr: int = SR, hop_s: float = 0.01, below: float = 25.0):
+    """(3.2.0) Per 10 ms hop of a dialogue stem: is it speaking (within `below` dB of its loud level, and above the
+    absolute floor, so a silent stem never "speaks")?"""
+    np = _need()
+    m = x.mean(axis=1) if x.ndim == 2 else x
+    hop = int(sr * hop_s)
+    n = len(m) // hop
+    if n == 0:
+        return np.zeros(0, bool)
+    e = (m[:n * hop].reshape(n, hop).astype(np.float64) ** 2).mean(axis=1)
+    db = 10 * np.log10(e + 1e-12)
+    return db >= max(float(np.percentile(db, 95)) - below, SPEECH_FLOOR_DB)
+
+
+def dialogue_balance(x, sr: int = SR) -> dict:
+    """(3.2.0) How far the dialogue sits off centre while it speaks: left minus right energy, in dB. A location
+    reverb send is decorrelated by design, so this reads level only, never correlation."""
+    np = _need()
+    if x.ndim != 2 or x.shape[1] < 2:
+        return {"lr_db": 0.0, "mono": True}
+    sp = _speaking(x, sr)
+    hop = int(sr * 0.01)
+    if not sp.any():
+        return {"lr_db": None, "mono": False}
+    idx = np.repeat(sp, hop)[: len(x)]
+    seg = x[: len(idx)][idx].astype(np.float64)
+    l_, r_ = float((seg[:, 0] ** 2).sum()), float((seg[:, 1] ** 2).sum())
+    return {"lr_db": round(10 * math.log10((l_ + 1e-12) / (r_ + 1e-12)), 2), "mono": False}
+
+
+def line_onsets(x, sr: int = SR) -> list:
+    """(3.2.0) The times a line starts on the dialogue stem: speech after at least LINE_GAP_S of quiet."""
+    sp = _speaking(x, sr)
+    gap = int(LINE_GAP_S / 0.01)
+    out, quiet = [], gap
+    for i, v in enumerate(sp):
+        if v and quiet >= gap:
+            out.append(round(i * 0.01, 3))
+        quiet = 0 if v else quiet + 1
+    return out
+
+
+def first_word_hits(dialogue_x, sfx_path: str, sr: int = SR) -> list:
+    """(3.2.0) SFX attacks within FIRST_WORD_S of a line's first syllable: [(line_t, attack_t)]."""
+    import sfx_conform as SC
+    ons = line_onsets(dialogue_x, sr)
+    att = [o["attack"] for o in SC.detect_onsets(SC.pcm(sfx_path))]
+    return [(lt, round(a, 3)) for lt in ons for a in att if abs(a - lt) <= FIRST_WORD_S]
 
 
 def fold_down(x, idx_vo: list | None = None) -> dict:
@@ -642,7 +698,7 @@ def cut_list(job: str, cuts_file: str | None) -> list:
 
 def measure(job: str, export: str, dialogue: str | None, bed: str | None, music=None, ambience=None,
             voices=None, audience="general", lane="ads", holes_file=None, cuts_file=None, scenes=None,
-            no_vo_why=None, floors_over=None, why=None) -> dict:
+            no_vo_why=None, floors_over=None, why=None, sfx=None) -> dict:
     np = _need()
     rel = lambda p: os.path.relpath(p, job).replace(os.sep, "/") if p else None
     checks, findings = [], []
@@ -663,7 +719,7 @@ def measure(job: str, export: str, dialogue: str | None, bed: str | None, music=
            "cuts": [c[0] for c in cuts],
            "stems": {k: ({"file": rel(v), "sha256": sha256_file(v)} if v else None)
                      for k, v in (("dialogue", dialogue), ("bed", bed), ("music", music), ("ambience", ambience),
-                                  ("voices", voices))}}
+                                  ("voices", voices), ("sfx", sfx))}}
     if not has_audio(export):
         C("audio stream", "FAIL", detail="the export has no audio stream")
         return _finish(job, export, rep, checks, findings)
@@ -720,6 +776,26 @@ def measure(job: str, export: str, dialogue: str | None, bed: str | None, music=
                 okp = gp["gap"] is not None and gp["gap"] >= floors["music"]
                 C("VO over bed on a phone", "PASS" if okp else "FAIL", gp["gap"], f"≥ {floors['music']:g} LU",
                   f"mono, {PHONE[0]} Hz–{PHONE[1] // 1000} kHz")
+    # (3.2.0) where the dialogue sits, and the first word of each line kept clear of the effects
+    if D is not None:
+        bal = dialogue_balance(D)
+        if bal.get("mono"):
+            C("dialogue in the centre", "PASS", 0.0, f"within ±{CENTRE_DB:g} dB", "the dialogue stem is mono")
+        elif bal["lr_db"] is None:
+            C("dialogue in the centre", "N/A", detail="the dialogue stem never speaks")
+        else:
+            okc = abs(bal["lr_db"]) <= CENTRE_DB
+            C("dialogue in the centre", "PASS" if okc else "WARN", bal["lr_db"], f"within ±{CENTRE_DB:g} dB",
+              "left minus right energy while it speaks" + ("" if okc else
+                                                           f" — the voice leans {'left' if bal['lr_db'] > 0 else 'right'}: "
+                                                           f"dialogue stays centred (editing-and-audio.md §7f)"))
+        if sfx:
+            hits = first_word_hits(D, sfx)
+            C("first word clear of the effects", "PASS" if not hits else "WARN", len(hits), "0",
+              "; ".join(f"a line at {lt} s, an effect at {at} s" for lt, at in hits[:5]) or
+              f"no effect attack within {int(FIRST_WORD_S * 1000)} ms of a line's start")
+        else:
+            C("first word clear of the effects", "N/A", detail="not checked: no --sfx stem")
     # short-term ceiling, on the file that ships
     st = [(t, s) for t, s in zip(E["t"], E["S"]) if t >= 3.0]
     smax = max(st, key=lambda x: x[1]) if st else (None, -120.0)
@@ -1148,6 +1224,39 @@ def selftest() -> int:
         for p in glob.glob(os.path.join(job, "10-export", "*")):
             if p != ex and not p.startswith(ex):
                 os.remove(p)
+        # (3.2.0) the dialogue in the centre and the first word clear of the effects
+        tt = np.arange(int(4.0 * SR)) / SR
+        line = (0.3 * np.sin(2 * np.pi * 180 * tt)).astype(np.float32)
+        line[: int(1.0 * SR)] = 0.0; line[int(2.0 * SR): int(2.5 * SR)] = 0.0       # lines start at 1.0 s and 2.5 s
+        rg = np.random.default_rng(5)                                                # a room send: two independent
+        tail = (np.abs(line) > 0).astype(np.float32) * 0.05                          # tails, decorrelated by design
+        centred = np.stack([line + tail * rg.standard_normal(len(line)).astype(np.float32),
+                            line + tail * rg.standard_normal(len(line)).astype(np.float32)], axis=1)
+        check("(3.2.0) a centred voice with a decorrelated room send sits in the centre",
+              abs(dialogue_balance(centred)["lr_db"]) <= CENTRE_DB, json.dumps(dialogue_balance(centred)))
+        left = np.stack([line * 1.0, line * 0.6], axis=1)                            # about 30 % left
+        check("(3.2.0) a voice leaning left is outside ±1 dB", dialogue_balance(left)["lr_db"] > CENTRE_DB,
+              json.dumps(dialogue_balance(left)))
+        quiet = np.zeros((int(2.0 * SR), 2), np.float32)
+        check("(3.2.0) a silent dialogue stem never speaks: no balance, no line starts",
+              dialogue_balance(quiet)["lr_db"] is None and line_onsets(quiet) == [])
+        check("(3.2.0) the lines start where the quiet ends", [round(x, 1) for x in line_onsets(centred)] == [1.0, 2.5],
+              json.dumps(line_onsets(centred)))
+        hit = np.zeros(int(4.0 * SR), np.float32)
+        for at in (1.03, 3.4):                                                       # one on a first syllable, one clear
+            k = int(at * SR); hit[k:k + 2400] = (0.8 * np.exp(-np.arange(2400) / 300.0)).astype(np.float32)
+        sx = os.path.join(td, "sfx.wav"); _wav(sx, np.stack([hit, hit], axis=1))
+        fw = first_word_hits(centred, sx)
+        check("(3.2.0) an effect on a line's first syllable is caught, one 0.9 s later is not",
+              len(fw) == 1 and fw[0][0] == 1.0, json.dumps(fw))
+        dl = os.path.join(td, "dl.wav"); _wav(dl, left)
+        rl = measure(job, ex, dl, bw, sfx=sx)
+        check("(3.2.0) the report carries both checks as WARNs, never a FAIL of their own",
+              st(rl, "dialogue in the centre") == "WARN" and st(rl, "first word clear of the effects") == "WARN",
+              json.dumps([c for c in rl["checks"] if c["name"] in ("dialogue in the centre",
+                                                                   "first word clear of the effects")]))
+        check("(3.2.0) with no effects stem the first-word check says it was not checked",
+              st(measure(job, ex, dw, bw), "first word clear of the effects") == "N/A")
         r0 = measure(job, ex, dw, bw)
         check("export check: a passing report on these bytes and a clean manifest → nothing missing",
               check_job(job) == [], json.dumps(check_job(job)))
@@ -1195,6 +1304,7 @@ def main() -> int:
     m = sub.add_parser("measure"); m.add_argument("job")
     m.add_argument("--export", required=True); m.add_argument("--dialogue"); m.add_argument("--bed")
     m.add_argument("--music"); m.add_argument("--ambience"); m.add_argument("--voices")
+    m.add_argument("--sfx", help="(3.2.0) the effects stem: checks that no effect lands on a line's first word")
     m.add_argument("--audience", choices=["general", "45+"], default="general")
     m.add_argument("--lane", choices=["ads", "drama"], default="ads")
     m.add_argument("--holes", help="planned silences, one `start-end` (seconds) per line")
@@ -1220,7 +1330,7 @@ def main() -> int:
         P = lambda p: (p if os.path.isabs(p) else os.path.join(j, p)) if p else None
         r = measure(j, P(a.export), P(a.dialogue), P(a.bed), P(a.music), P(a.ambience), P(a.voices), a.audience,
                     a.lane, P(a.holes), P(a.cuts), a.scenes, a.no_vo,
-                    {k: getattr(a, f"floor_{k}") for k in FLOORS}, a.why)
+                    {k: getattr(a, f"floor_{k}") for k in FLOORS}, a.why, sfx=P(a.sfx))
         print(render_md(r))
         return 0 if r["verdict"] == "PASS" else 1
     if a.cmd == "manifest":
