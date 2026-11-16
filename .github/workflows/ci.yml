@@ -20,10 +20,14 @@ jobs:
         run: |
           /usr/bin/python3 --version
           /usr/bin/python3 gate.py --selftest
-          /usr/bin/python3 test_gate.py
           for f in cine_home.py new_job.py studio_setup.py doctor.py next_step.py cut_plan.py timeline_export.py; do
             /usr/bin/python3 "$f" --selftest
           done
+      - name: The gate end to end (its animatic step needs Pillow)
+        working-directory: skills/cinematographly/scripts
+        run: |
+          /usr/bin/python3 -m pip install --user -q Pillow
+          /usr/bin/python3 test_gate.py
   suite-python-3-12:
     name: Full test suite on Python 3.12
     runs-on: ubuntu-latest
