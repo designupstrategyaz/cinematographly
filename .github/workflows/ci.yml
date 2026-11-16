@@ -7,22 +7,22 @@ permissions:
   contents: read
 jobs:
   gate-python-3-9:
-    name: Spend gate on Python 3.9 (the macOS system Python)
-    runs-on: ubuntu-latest
+    name: Spend gate on the macOS system Python
+    # GitHub's Ubuntu runners no longer offer Python 3.9; macOS still ships it as /usr/bin/python3, which is the one
+    # a Mac user without Homebrew runs the hooks with
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
-        with:
-          python-version: "3.9"
       - name: Gate and first-run self-tests (standard library only)
         working-directory: skills/cinematographly/scripts
         run: |
-          python gate.py --selftest
-          python test_gate.py
+          /usr/bin/python3 --version
+          /usr/bin/python3 gate.py --selftest
+          /usr/bin/python3 test_gate.py
           for f in cine_home.py new_job.py studio_setup.py doctor.py next_step.py cut_plan.py timeline_export.py; do
-            python "$f" --selftest
+            /usr/bin/python3 "$f" --selftest
           done
   suite-python-3-12:
     name: Full test suite on Python 3.12

@@ -51,7 +51,8 @@ FOLDERS = [SK + d for d in ("assets/", "modes/", "references/", "scripts/")]
 PATTERNS = ["agents/*.md", "commands/*.md",                          # (3.0.0) the slash commands
             SK + "clients/_*.md", SK + "clients/acme.md", SK + "clients/*._TEMPLATE.json", SK + "clients/*.acme.json"]
 JUNK_DIRS = {"__pycache__", "node_modules", ".git"}
-SPDX_MARK = "SPDX-License-Identifier: LicenseRef-Cinematographly-Studio"   # (3.0.0) every shipped script carries it
+SPDX_MARK = "SPDX-" + "License-Identifier: LicenseRef-Cinematographly-Studio"   # (3.0.0) every shipped script carries
+# it; split so REUSE does not read this line as the file's own (malformed) licence header
 JUNK_FILES = ("*.pyc", ".DS_Store", "*.env", ".env*", "*.key", "*-key.txt")
 KEY_RE = re.compile(r"sk-(?:ant-)?[A-Za-z0-9_-]{24,}|ghp_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{30,}|"
                     r"AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----")

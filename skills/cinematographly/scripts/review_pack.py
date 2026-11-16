@@ -15,7 +15,7 @@ gate refuses: no --pack, a code not in the quote, another pack's code, or files 
 """
 from __future__ import annotations
 import urllib.parse
-import argparse, datetime as dt, hashlib, html, json, os, re, shutil, sys, tempfile
+import argparse, datetime as dt, hashlib, html, json, os, re, shutil, sys, tempfile, time
 
 DIR = "07-review"
 IMG = (".png", ".jpg", ".jpeg", ".webp", ".gif")
@@ -44,7 +44,8 @@ def packs(job: str, stage: str) -> list:
             out.append(json.load(open(os.path.join(d, code, "pack.json"), encoding="utf-8")))
         except (OSError, ValueError):
             pass
-    return sorted(out, key=lambda p: p.get("made", ""))
+    # (3.1.0 CI) two packs in one second tie on "made": the nanosecond stamp orders them (older packs have none: 0)
+    return sorted(out, key=lambda p: (p.get("made", ""), int(p.get("made_ns") or 0)))
 
 
 def broken(job: str, stage: str) -> list:
@@ -106,7 +107,8 @@ def make(job: str, stage: str, files: list) -> tuple[dict | None, list]:
             f"margin:auto;padding:16px'><h1>Review: {html.escape(stage)}</h1>" + "".join(items) +
             f"<p><b>To approve, reply in your own words and include this pack code: {code}</b></p></body>")
     open(os.path.join(d, "index.html"), "w", encoding="utf-8").write(page)
-    pk = {"stage": stage, "code": code, "files": rows, "made": dt.datetime.now().isoformat(timespec="seconds")}
+    pk = {"stage": stage, "code": code, "files": rows, "made": dt.datetime.now().isoformat(timespec="seconds"),
+          "made_ns": time.time_ns()}
     json.dump(pk, open(os.path.join(d, "pack.json"), "w", encoding="utf-8"), indent=1)
     return pk, []
 
@@ -163,6 +165,9 @@ def selftest() -> int:
             "(build review 2) a pack made as FAMILY:Hero binds family:hero (one stage on a case-sensitive disk)"
         assert "family_hero" in os.listdir(os.path.join(job, DIR)), \
             "the folder is written lower-case, so a case-sensitive disk (Linux) finds it too"
+        _ps = packs(job, "script")                     # (3.1.0 CI) packs made in one second still order by made_ns
+        assert all(int(a_.get("made_ns") or 0) <= int(b_.get("made_ns") or 0) for a_, b_ in zip(_ps, _ps[1:])
+                   if a_.get("made") == b_.get("made")), [(p_.get("made"), p_.get("made_ns")) for p_ in _ps]
         _bd = os.path.join(job, DIR, "script", "deadbeefdeadbeef"); os.makedirs(_bd)
         open(os.path.join(_bd, "pack.json"), "w").write("{")
         assert "cannot be read" in (approval_refusal(job, "script", pk2["code"], f"yes, pack {pk2['code']}") or ""), \
