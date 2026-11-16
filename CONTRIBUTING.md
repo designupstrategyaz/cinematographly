@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for helping. Cinematographly is source-available under the Cinematographly Studio License 1.0
+Thank you for helping. Cinematographly is source-available under the Cinematographly Studio License 1.1
 (`LICENSE`), so contributions work a little differently from an open-source project.
 
 ## Reporting a problem

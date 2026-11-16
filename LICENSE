@@ -1,4 +1,4 @@
-Cinematographly Studio License 1.0
+Cinematographly Studio License 1.1
 SPDX-License-Identifier: LicenseRef-Cinematographly-Studio
 
 Copyright (c) 2026 Design UpStrategy AZ LLC.
@@ -30,19 +30,20 @@ Initiative: it limits who may use the Software for free and forbids selling it.
    once. A part-time Worker counts as one person. Studio Size is the people of the business. It is not the
    number of people who open the Software.
 
-2. Free use, for studios of 10 people or fewer. If Your Studio Size is 10 or fewer, the Licensor gives You
+2. Free use, for studios of 3 people or fewer. If Your Studio Size is 3 or fewer, the Licensor gives You
    a worldwide, royalty-free, non-exclusive licence to use, reproduce and adapt the Software for Your own use,
    including commercial work You are paid for by Your clients. It is non-transferable: You may not assign it.
    Giving copies to others is section 4 only.
 
-3. Larger studios. If Your Studio Size is more than 10 on a day You use the Software, You have no licence under
+3. Larger studios. If Your Studio Size is more than 3 on a day You use the Software, You have no licence under
    sections 2 and 4 for new use unless a commercial licence covers You. Studio Size is tested on each day of
-   use. If it is 10 or fewer again, section 2 applies again from that day. If Studio Size goes above 10, You may
-   finish a job already started, for 30 days after the first day it is above 10, and You may not start a new
+   use. If it is 3 or fewer again, section 2 applies again from that day. If Studio Size goes above 3, You may
+   finish a job already started, for 30 days after the first day it is above 3, and You may not start a new
    job in those 30 days. When the 30 days end, You stop using the Software unless You then have a commercial
-   licence or Your Studio Size is 10 or fewer. Copies others already received under section 4 stay under this
+   licence or Your Studio Size is 3 or fewer. Copies others already received under section 4 stay under this
    licence for those recipients. COMMERCIAL.md says how to ask. A commercial licence is a separate writing
-   signed by the Licensor.
+   signed by the Licensor. A paid seat order in the Licensor's store counts as a commercial licence for the seats
+   paid for, from the day of payment until that writing is sent.
 
 4. Sharing. If section 2 applies to You, You may give anyone a copy of the Software, changed or unchanged, at
    no charge. You include this licence, the NOTICE file, every copyright notice, every licence header and every
@@ -87,7 +88,7 @@ Initiative: it limits who may use the Software for free and forbids selling it.
 10. Ending. If You break this licence, it continues unless the Licensor gives You written notice of the breach
     and You do not cure it within 30 days after that notice. Email is written notice. If You do not cure it in
     time, the licence ends, You stop using the Software, and You delete the copies in Your possession. Copies
-    others already received under section 4 stay licensed to those recipients. Studio Size above 10 is governed
+    others already received under section 4 stay licensed to those recipients. Studio Size above 3 is governed
     by section 3, not by this section. Sections 6, 9, 11, 12, 13, 15, and 16 survive the end of this licence.
 
 11. NO WARRANTY. THE SOFTWARE IS PROVIDED AS IS, WITH NO WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING

@@ -168,9 +168,9 @@ The gate checks every paid call, approval and export against files on your machi
 ## Licence and pricing
 
 **Source-available, not OSI open source.** Free to use, change and use for paid client work for a studio of
-**10 people or fewer**. Count employees, working owners and partners, regular contractors and affiliates, once
+**3 people or fewer**. Count employees, working owners and partners, regular contractors and affiliates, once
 each, part-time people included: the count is the whole business, not a seat count (LICENSE, section 1). Larger
-studios need a commercial licence:
+studios need a commercial licence, $99 per seat (a seat is one person who uses it):
 see [`COMMERCIAL.md`](COMMERCIAL.md) or write to vladms@designupstrategyaz.xyz. You may share free copies and forks
 with the licence and notices kept; you may not sell the plugin, host it as a paid service, or sell a subscription or bundle whose customer is paying for
 it. The recipient's own size decides whether they may use a copy you share. The licensor
